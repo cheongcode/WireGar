@@ -4,28 +4,30 @@ from machinegar.TrainModels import trainRandomForestClassifier
 from startup import *
 import os
 import subprocess
+from click_shell import shell
+from shlex import quote as shlex_quote
 
 
 # Main Menu
-@click.group()
-def main():
+@shell(prompt='wiregar >', intro='Select your module: [flowgar], [machinegar]. [netgar]')
+def wiregar():
     """MODULE SELECTION"""
     pass
 
 
-@main.group()
+@wiregar.group()
 def flowgar():
     """FOR FLOW CONVERSION"""
     pass
 
 
-@main.group()
+@wiregar.group()
 def machinegar():
     """FOR MACHINE LEARNING"""
     pass
 
 
-@main.group()
+@wiregar.group()
 def netgar():
     """FOR NETWORK TOOLS AND ANALYSIS"""
     pass
@@ -51,7 +53,6 @@ def pcapng2pcap(pcapng, pcap):
         click.echo("PCAPNG to PCAP Conversion Succeeded")
     except:
         click.echo("Error, unable to convert")
-
 
 
 @machinegar.command()
@@ -80,9 +81,9 @@ def getlive():
 @click.argument('x')
 def ping(x):
     """Ping a network"""
-    click.echo(subprocess.run('ping ' + x, shell=True))
+    click.echo(subprocess.run('ping ' + x), shell=True)
 
 
 if __name__ == '__main__':
     logo()
-    main()
+    wiregar()
