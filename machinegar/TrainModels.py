@@ -2,10 +2,13 @@ import pandas as pd
 import numpy as np
 import seaborn as sns
 import matplotlib.pyplot as plt
+import click
 
 
 def trainRandomForestClassifier():
-    idsdata = pd.read_csv('IDS1718_Dataset.csv')
+    data = click.prompt('Input your dataset: ')
+    idsdata = pd.read_csv(data)
+
 
     df = pd.DataFrame(idsdata)
     df = df.replace([np.inf, -np.inf], np.nan).dropna(axis=0)
@@ -31,6 +34,7 @@ def trainRandomForestClassifier():
     from sklearn import metrics
 
     print("Accuracy:", metrics.accuracy_score(y_test, y_pred))
+
     # print(y_train)
     # feature_imp = pd.Series(clf.feature_importances_, index=y_train).sort_values(ascending=False)
     #

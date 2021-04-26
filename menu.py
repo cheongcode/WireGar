@@ -6,6 +6,7 @@ import os
 import subprocess
 from click_shell import shell
 from shlex import quote as shlex_quote
+import pandas as pd
 
 
 # Main Menu
@@ -54,6 +55,16 @@ def pcapng2pcap(pcapng, pcap):
     except:
         click.echo("Error, unable to convert")
 
+
+@machinegar.command()
+def checkcsv():
+    """Check if csv exists"""
+    try:
+        check = click.prompt('Input dataset to check: ')
+        csv = pd.read_csv(check)
+        click.echo(csv)
+    except:
+        click.echo("No CSV Detected")
 
 @machinegar.command()
 def train1():
