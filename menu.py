@@ -1,6 +1,6 @@
 import click
 import pyshark
-from machinegar.TrainModels import trainRandomForestClassifier
+from machinegar.TrainModels import *
 from startup import *
 import os
 import subprocess
@@ -75,6 +75,14 @@ def train1():
     except:
         click.echo("Error, unable to train")
 
+@machinegar.command()
+def train2():
+    """Train the model with Decision Tree Classifier"""
+    try:
+        trainDecisionTreeClassifier()
+        click.echo("Decision Tree Classifer Training Succeeded")
+    except:
+        click.echo("Error, unable to train")
 
 # Netgar
 @netgar.command()
