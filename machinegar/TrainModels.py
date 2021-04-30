@@ -153,5 +153,45 @@ def trainSVM():
     print("F1:", metrics.f1_score(y_test, y_pred, average='macro'))
     print("Confusion Matrix: \n", metrics.confusion_matrix(y_test, y_pred))
 
-# def trainGaussianNB():
-#
+
+def trainGaussianNB():
+    # Input Reading Of Data
+    data = click.prompt('Input your dataset: ')
+    idsdata = pd.read_csv(data)
+    df = pd.DataFrame(idsdata)
+
+    # Data Clean
+    df = df.replace([np.inf, -np.inf], np.nan).dropna(axis=0)
+    df['Timestamp'] = df['Timestamp'].str.replace(" ", "") \
+        .str.replace("/", "").str.replace(":", "")
+    X = df.iloc[:, :-1].values
+    y = df.iloc[:, -1].values
+
+    from sklearn.model_selection import train_test_split
+
+    # Split dataset into training set and test set
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3,
+                                                        random_state=109)  # 70% training and 30% test
+    # Import Gaussian Naive Bayes model
+    from sklearn.naive_bayes import GaussianNB
+
+    # Create a Gaussian Classifier
+    gnb = GaussianNB()
+
+    # Train the model using the training sets
+    gnb.fit(X_train, y_train)
+
+    # Predict the response for test dataset
+    y_pred = gnb.predict(X_test)
+
+    # Import scikit-learn metrics module for accuracy calculation
+    from sklearn import metrics
+
+    # Model Accuracy, how often is the classifier correct?
+    print("Accuracy:", metrics.accuracy_score(y_test, y_pred))
+
+    print("Precision:", metrics.precision_score(y_test, y_pred, average='macro'))
+    print("Recall:", metrics.recall_score(y_test, y_pred, average='macro'))
+    print("Accuracy:", metrics.accuracy_score(y_test, y_pred))
+    print("F1:", metrics.f1_score(y_test, y_pred, average='macro'))
+    print("Confusion Matrix: \n", metrics.confusion_matrix(y_test, y_pred))
