@@ -1,12 +1,16 @@
-import click
 import pyshark
-from machinegar.TrainModels import *
-from startup import *
+# from machinegar.TrainModels import *
+from netgar.startup import *
 import os
 import subprocess
 from click_shell import shell
-from shlex import quote as shlex_quote
 import pandas as pd
+import click
+from Train import *
+from rich.console import Console
+from rich.table import Column, Table
+
+console = Console()
 
 
 # Main Menu
@@ -36,11 +40,16 @@ def netgar():
 
 # Flowgar
 @flowgar.command()
-@click.argument('input')
-@click.argument('csv')
-def getflow(input, csv):
+@click.argument('inputcsv')
+@click.argument('outputcsv')
+def getflow(inputcsv, outputcsv):
     """CLI to do Flow Conversion, [INPUT FILE] [OUTPUT FILE]"""
-    os.system("python flowmaster.py -f {} -c {}".format(input, csv))
+    try:
+        os.system("python flowstart.py -f {} -c {}".format(os.path.abspath("datafolder/{}".format(inputcsv)),
+                                                           os.path.abspath("datafolder/{}".format(outputcsv))))
+        click.echo("Flow Conversion Succeeded")
+    except:
+        click.echo("Error, unable to convert")
 
 
 @flowgar.command()
@@ -60,11 +69,13 @@ def pcapng2pcap(pcapng, pcap):
 def checkcsv():
     """Check if csv exists"""
     try:
-        check = click.prompt('Input dataset to check: ')
+
+        check = (click.prompt('Input dataset to check: '))
         csv = pd.read_csv(check)
         click.echo(csv)
     except:
         click.echo("No CSV Detected")
+
 
 @machinegar.command()
 def train1():
@@ -75,6 +86,7 @@ def train1():
     except:
         click.echo("Error, unable to train")
 
+
 @machinegar.command()
 def train2():
     """Train the model with Decision Tree Classifier"""
@@ -84,12 +96,63 @@ def train2():
     except:
         click.echo("Error, unable to train")
 
+
+@machinegar.command()
+def train3():
+    """Train the model with Logistic Regression"""
+    try:
+        trainLogisticRegression()
+        click.echo("Logistic Regression Training Succeeded")
+    except:
+        click.echo("Error, unable to train")
+
+
+@machinegar.command()
+def train4():
+    """Train the model with SVM"""
+    try:
+        trainSVM()
+        click.echo("SVM Training Succeeded")
+    except:
+        click.echo("Error, unable to train")
+
+
+@machinegar.command()
+def train5():
+    """Train the model with GaussianNB"""
+    try:
+        trainGaussianNB()
+        click.echo("GaussianNB Training Succeeded")
+    except:
+        click.echo("Error, unable to train")
+
+
+@machinegar.command()
+def train6():
+    """Train the model with BernoulliNB"""
+    try:
+        trainBernoulliNB()
+        click.echo("BernoulliNB Training Succeeded")
+    except:
+        click.echo("Error, unable to train")
+
+
+@machinegar.command()
+def trainall():
+    """Train the model with all 6 models"""
+    try:
+        trainAll()
+        click.echo("Succeeded in training all models")
+    except:
+        click.echo("Error, unable to train")
+
+
 # Netgar
 @netgar.command()
 def getlive():
     """Get 10 seconds of live data"""
     try:
-        capture = pyshark.LiveCapture(output_file="live.pcap")
+        capture = pyshark.LiveCapture(output_file="datafolder/live.pcap")
         capture.sniff(timeout=10)
         click.echo('10 Seconds of live network data captured')
     except:
@@ -100,7 +163,7 @@ def getlive():
 @click.argument('x')
 def ping(x):
     """Ping a network"""
-    click.echo(subprocess.run('ping ' + x), shell=True)
+    click.echo(subprocess.run('ping ' + x))
 
 
 if __name__ == '__main__':

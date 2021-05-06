@@ -3,7 +3,16 @@ import pandas as pd
 import numpy as np
 from sklearn.model_selection import train_test_split
 import os
-from datafolder import *
+from rich import *
+from rich.console import Console
+from rich.table import Column, Table
+from decimal import Decimal
+
+console = Console()
+
+import warnings
+
+warnings.filterwarnings('ignore')  # "error", "ignore", "always", "default", "module" or "once"
 
 
 def trainRandomForestClassifier():
@@ -41,10 +50,42 @@ def trainRandomForestClassifier():
     # Print Output
     from sklearn import metrics
     print("Random Forest Classifier Result: ")
-    print("Precision:", metrics.precision_score(y_test, y_pred, average='macro'))
-    print("Recall:", metrics.recall_score(y_test, y_pred, average='macro'))
-    print("Accuracy:", metrics.accuracy_score(y_test, y_pred))
-    print("F1:", metrics.f1_score(y_test, y_pred, average='macro'))
+    table = Table(show_header=True, header_style="bold magenta")
+    table.add_column("Precision")
+    table.add_column("Recall")
+    table.add_column("Accuracy", justify="right")
+    table.add_column("F1 Score", justify="right")
+    p = str(metrics.precision_score(y_test, y_pred, average='macro'))
+    r = str(metrics.recall_score(y_test, y_pred, average='macro'))
+    a = str(metrics.accuracy_score(y_test, y_pred))
+    f = str(metrics.f1_score(y_test, y_pred, average='macro'))
+    table.add_row(
+        p,
+        r,
+        a,
+        f
+    )
+    # round p
+    rp = Decimal(p)
+    round(rp, 2)
+    nep = str(round(rp, 2))
+    # round r
+    rr = Decimal(r)
+    round(rr, 2)
+    ner = str(round(rr, 2))
+    # round a
+    ra = Decimal(a)
+    nea = str(round(ra, 2))
+    # round f
+    rf = Decimal(f)
+    nef = str(round(rf, 2))
+    table.add_row(
+        nep,
+        ner,
+        nea,
+        nef
+    )
+    console.print(table)
     print("Confusion Matrix: \n", metrics.confusion_matrix(y_test, y_pred))
 
 
@@ -261,11 +302,11 @@ def trainBernoulliNB():
 def trainAll():
     # Select Dataset from Folder
     basepath = 'datafolder/'
+    print("List of Datasets: ")
     for entry in os.listdir(basepath):
         name, ext = os.path.splitext(entry)
         if os.path.isfile(os.path.join(basepath, entry)):
             if ext == '.csv':
-                print("List of Datasets: ")
                 print(entry)
     check = input("Input Data: ")
     os.listdir(basepath)
@@ -293,10 +334,43 @@ def trainAll():
     from sklearn import metrics
 
     print("Random Forest Classifier Result: ")
-    print("Precision:", metrics.precision_score(y_test, y_pred, average='macro'))
-    print("Recall:", metrics.recall_score(y_test, y_pred, average='macro'))
-    print("Accuracy:", metrics.accuracy_score(y_test, y_pred))
-    print("F1:", metrics.f1_score(y_test, y_pred, average='macro'))
+    table = Table(show_header=True, header_style="bold magenta")
+    table.add_column("Precision")
+    table.add_column("Recall")
+    table.add_column("Accuracy", justify="right")
+    table.add_column("F1 Score", justify="right")
+    p = str(metrics.precision_score(y_test, y_pred, average='macro'))
+    r = str(metrics.recall_score(y_test, y_pred, average='macro'))
+    a = str(metrics.accuracy_score(y_test, y_pred))
+    f = str(metrics.f1_score(y_test, y_pred, average='macro'))
+    table.add_row(
+        p,
+        r,
+        a,
+        f
+    )
+    # round p
+    rp = Decimal(p)
+    round(rp, 2)
+    nep = str(round(rp, 2))
+    # round r
+    rr = Decimal(r)
+    round(rr, 2)
+    ner = str(round(rr, 2))
+    # round a
+    ra = Decimal(a)
+    nea = str(round(ra, 2))
+    # round f
+    rf = Decimal(f)
+    nef = str(round(rf, 2))
+    table.add_row(
+        nep,
+        ner,
+        nea,
+        nef
+    )
+    console.print(table)
+    RAcc = metrics.accuracy_score(y_test, y_pred)
     print("Confusion Matrix: \n", metrics.confusion_matrix(y_test, y_pred))
 
     # Decision Tree Classifier
@@ -310,10 +384,43 @@ def trainAll():
     from sklearn import metrics
 
     print("Decision Tree Classifier Result: ")
-    print("Precision:", metrics.precision_score(y_test, y_pred, average='macro'))
-    print("Recall:", metrics.recall_score(y_test, y_pred, average='macro'))
-    print("Accuracy:", metrics.accuracy_score(y_test, y_pred))
-    print("F1:", metrics.f1_score(y_test, y_pred, average='macro'))
+    table = Table(show_header=True, header_style="bold magenta")
+    table.add_column("Precision")
+    table.add_column("Recall")
+    table.add_column("Accuracy", justify="right")
+    table.add_column("F1 Score", justify="right")
+    p = str(metrics.precision_score(y_test, y_pred, average='macro'))
+    r = str(metrics.recall_score(y_test, y_pred, average='macro'))
+    a = str(metrics.accuracy_score(y_test, y_pred))
+    f = str(metrics.f1_score(y_test, y_pred, average='macro'))
+    table.add_row(
+        p,
+        r,
+        a,
+        f
+    )
+    # round p
+    rp = Decimal(p)
+    round(rp, 2)
+    nep = str(round(rp, 2))
+    # round r
+    rr = Decimal(r)
+    round(rr, 2)
+    ner = str(round(rr, 2))
+    # round a
+    ra = Decimal(a)
+    nea = str(round(ra, 2))
+    # round f
+    rf = Decimal(f)
+    nef = str(round(rf, 2))
+    table.add_row(
+        nep,
+        ner,
+        nea,
+        nef
+    )
+    console.print(table)
+    DAcc = metrics.accuracy_score(y_test, y_pred)
     print("Confusion Matrix: \n", metrics.confusion_matrix(y_test, y_pred))
 
     # Logistic Regression
@@ -325,10 +432,43 @@ def trainAll():
 
     from sklearn import metrics
     print("Logistic Regression Result: ")
-    print("Precision:", metrics.precision_score(y_test, y_pred, average='macro'))
-    print("Recall:", metrics.recall_score(y_test, y_pred, average='macro'))
-    print("Accuracy:", metrics.accuracy_score(y_test, y_pred))
-    print("F1:", metrics.f1_score(y_test, y_pred, average='macro'))
+    table = Table(show_header=True, header_style="bold magenta")
+    table.add_column("Precision")
+    table.add_column("Recall")
+    table.add_column("Accuracy", justify="right")
+    table.add_column("F1 Score", justify="right")
+    p = str(metrics.precision_score(y_test, y_pred, average='macro'))
+    r = str(metrics.recall_score(y_test, y_pred, average='macro'))
+    a = str(metrics.accuracy_score(y_test, y_pred))
+    f = str(metrics.f1_score(y_test, y_pred, average='macro'))
+    table.add_row(
+        p,
+        r,
+        a,
+        f
+    )
+    # round p
+    rp = Decimal(p)
+    round(rp, 2)
+    nep = str(round(rp, 2))
+    # round r
+    rr = Decimal(r)
+    round(rr, 2)
+    ner = str(round(rr, 2))
+    # round a
+    ra = Decimal(a)
+    nea = str(round(ra, 2))
+    # round f
+    rf = Decimal(f)
+    nef = str(round(rf, 2))
+    table.add_row(
+        nep,
+        ner,
+        nea,
+        nef
+    )
+    console.print(table)
+    LAcc = metrics.accuracy_score(y_test, y_pred)
     print("Confusion Matrix: \n", metrics.confusion_matrix(y_test, y_pred))
 
     # SVM
@@ -342,11 +482,43 @@ def trainAll():
     from sklearn import metrics
 
     print("GaussianNB Result: ")
-    print("Accuracy:", metrics.accuracy_score(y_test, y_pred))
-    print("Precision:", metrics.precision_score(y_test, y_pred, average='macro'))
-    print("Recall:", metrics.recall_score(y_test, y_pred, average='macro'))
-    print("Accuracy:", metrics.accuracy_score(y_test, y_pred))
-    print("F1:", metrics.f1_score(y_test, y_pred, average='macro'))
+    table = Table(show_header=True, header_style="bold magenta")
+    table.add_column("Precision")
+    table.add_column("Recall")
+    table.add_column("Accuracy", justify="right")
+    table.add_column("F1 Score", justify="right")
+    p = str(metrics.precision_score(y_test, y_pred, average='macro'))
+    r = str(metrics.recall_score(y_test, y_pred, average='macro'))
+    a = str(metrics.accuracy_score(y_test, y_pred))
+    f = str(metrics.f1_score(y_test, y_pred, average='macro'))
+    table.add_row(
+        p,
+        r,
+        a,
+        f
+    )
+    # round p
+    rp = Decimal(p)
+    round(rp, 2)
+    nep = str(round(rp, 2))
+    # round r
+    rr = Decimal(r)
+    round(rr, 2)
+    ner = str(round(rr, 2))
+    # round a
+    ra = Decimal(a)
+    nea = str(round(ra, 2))
+    # round f
+    rf = Decimal(f)
+    nef = str(round(rf, 2))
+    table.add_row(
+        nep,
+        ner,
+        nea,
+        nef
+    )
+    console.print(table)
+    GAcc = metrics.accuracy_score(y_test, y_pred)
     print("Confusion Matrix: \n", metrics.confusion_matrix(y_test, y_pred))
 
     # BernoulliNB
@@ -358,10 +530,56 @@ def trainAll():
     from sklearn import metrics
 
     print("BernoulliNB Result: ")
-    print("Accuracy:", metrics.accuracy_score(y_test, y_pred))
-    print("Precision:", metrics.precision_score(y_test, y_pred, average='macro'))
-    print("Recall:", metrics.recall_score(y_test, y_pred, average='macro'))
-    print("Accuracy:", metrics.accuracy_score(y_test, y_pred))
-    print("F1:", metrics.f1_score(y_test, y_pred, average='macro'))
+    table = Table(show_header=True, header_style="bold magenta")
+    table.add_column("Precision")
+    table.add_column("Recall")
+    table.add_column("Accuracy", justify="right")
+    table.add_column("F1 Score", justify="right")
+    p = str(metrics.precision_score(y_test, y_pred, average='macro'))
+    r = str(metrics.recall_score(y_test, y_pred, average='macro'))
+    a = str(metrics.accuracy_score(y_test, y_pred))
+    f = str(metrics.f1_score(y_test, y_pred, average='macro'))
+    table.add_row(
+        p,
+        r,
+        a,
+        f
+    )
+    # round p
+    rp = Decimal(p)
+    round(rp, 2)
+    nep = str(round(rp, 2))
+    # round r
+    rr = Decimal(r)
+    round(rr, 2)
+    ner = str(round(rr, 2))
+    # round a
+    ra = Decimal(a)
+    nea = str(round(ra, 2))
+    # round f
+    rf = Decimal(f)
+    nef = str(round(rf, 2))
+    table.add_row(
+        nep,
+        ner,
+        nea,
+        nef
+    )
+    console.print(table)
+    BAcc = metrics.accuracy_score(y_test, y_pred)
     print("Confusion Matrix: \n", metrics.confusion_matrix(y_test, y_pred))
 
+    ranking = [RAcc, DAcc, LAcc, GAcc, BAcc]
+    ranking.sort()
+    print("Summary: ")
+    print("Highest Accuracy: ", ranking[-1])
+    if ranking[-1] == RAcc:
+        console.print("Suggested Model: Random Forest Classifier", style="#00FF00")
+    elif ranking[-1] == DAcc:
+        console.print("Suggested Model: Decision Tree Classifier", style="#00FF00")
+    elif ranking[-1] == LAcc:
+        console.print("Suggested Model: Logistic Regression", style="#00FF00")
+    elif ranking[-1] == GAcc:
+        console.print("Suggested Model: GaussianNB", style="#00FF00")
+    elif ranking[-1] == BAcc:
+        console.print("Suggested Model: BernoulliNB", style="#00FF00")
