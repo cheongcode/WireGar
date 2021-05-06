@@ -134,12 +134,12 @@ def trainDecisionTreeClassifier():
 
 def trainLogisticRegression():
     # Select Dataset from Folder
+    print("List of Datasets: ")
     basepath = 'datafolder/'
     for entry in os.listdir(basepath):
         name, ext = os.path.splitext(entry)
         if os.path.isfile(os.path.join(basepath, entry)):
             if ext == '.csv':
-                print("List of Datasets: ")
                 print(entry)
     check = input("Input Data: ")
     os.listdir(basepath)
@@ -167,10 +167,10 @@ def trainLogisticRegression():
     from sklearn import metrics
     print("Logistic Regression Result: ")
     print("Precision:", metrics.precision_score(y_test, y_pred, average='macro'))
-    print("Recall:", metrics.recall_score(y_test, y_pred, average='macro'))
-    print("Accuracy:", metrics.accuracy_score(y_test, y_pred))
-    print("F1:", metrics.f1_score(y_test, y_pred, average='macro'))
-    print("Confusion Matrix: \n", metrics.confusion_matrix(y_test, y_pred))
+    # print("Recall:", metrics.recall_score(y_test, y_pred, average='macro'))
+    # print("Accuracy:", metrics.accuracy_score(y_test, y_pred))
+    # print("F1:", metrics.f1_score(y_test, y_pred, average='macro'))
+    # print("Confusion Matrix: \n", metrics.confusion_matrix(y_test, y_pred))
 
 
 def trainSVM():

@@ -22,3 +22,4 @@ threadpoolctl==2.1.0
 enum34~=1.1.10
 requests~=2.25.1
 rich~=10.1.0
+colorama~=0.4.4

@@ -6,15 +6,25 @@ import subprocess
 from click_shell import shell
 import pandas as pd
 import click
+from rich import *
 from Train import *
 from rich.console import Console
+from rich.markdown import Markdown
 from rich.table import Column, Table
+from colorama import init
 
+init()
 console = Console()
+
+with open("README2.md") as readme:
+    markdown = Markdown(readme.read())
+console.print(markdown)
 
 
 # Main Menu
-@shell(prompt='wiregar >', intro='Select your module: [flowgar], [machinegar]. [netgar]')
+@shell(prompt='\033[0;31mwiregar>\033[00m', intro='Module Selection: [flowgar] [machinegar] [netgar]\n Type '
+                                                  'in any module from the above '
+                                                  'to start\n')
 def wiregar():
     """MODULE SELECTION"""
     pass
@@ -40,12 +50,12 @@ def netgar():
 
 # Flowgar
 @flowgar.command()
-@click.argument('inputcsv')
+@click.argument('inputpcap')
 @click.argument('outputcsv')
-def getflow(inputcsv, outputcsv):
-    """CLI to do Flow Conversion, [INPUT FILE] [OUTPUT FILE]"""
+def getflow(inputpcap, outputcsv):
+    """Flow Converter, [INPUT PCAP FILE] [OUTPUT CSV FILE]"""
     try:
-        os.system("python flowstart.py -f {} -c {}".format(os.path.abspath("datafolder/{}".format(inputcsv)),
+        os.system("python flowstart.py -f {} -c {}".format(os.path.abspath("datafolder/{}".format(inputpcap)),
                                                            os.path.abspath("datafolder/{}".format(outputcsv))))
         click.echo("Flow Conversion Succeeded")
     except:
@@ -56,7 +66,7 @@ def getflow(inputcsv, outputcsv):
 @click.argument('pcapng')
 @click.argument('pcap')
 def pcapng2pcap(pcapng, pcap):
-    """Converts a PCAPNG to PCAP, [PCAPNG] [PCAP]"""
+    """Converts a PCAPNG to PCAP, [INPUT PCAPNG] [OUTPUT PCAP]"""
     try:
         os.chdir(r"C:\Program Files\Wireshark")
         subprocess.run('tshark -F pcap -r {} -w {}'.format(pcapng, pcap), shell=True)
@@ -67,7 +77,7 @@ def pcapng2pcap(pcapng, pcap):
 
 @machinegar.command()
 def checkcsv():
-    """Check if csv exists"""
+    """CSV Existence Check"""
     try:
 
         check = (click.prompt('Input dataset to check: '))
