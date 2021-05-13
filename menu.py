@@ -47,6 +47,9 @@ def netgar():
     """FOR NETWORK TOOLS AND ANALYSIS"""
     pass
 
+# @wiregar.command()
+# def oneshot():
+#     pass
 
 # Flowgar
 @flowgar.command()
