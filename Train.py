@@ -7,6 +7,9 @@ from rich import *
 from rich.console import Console
 from rich.table import Column, Table
 from decimal import Decimal
+import pickle
+from sklearn import metrics
+from rich import box
 
 console = Console()
 
@@ -17,13 +20,15 @@ warnings.filterwarnings('ignore')  # "error", "ignore", "always", "default", "mo
 
 def trainRandomForestClassifier():
     # Select Dataset from Folder
+    table = Table(show_header=False, title="\n[#8A2BE2]List of Datasets:[/#8A2BE2]", box=box.HORIZONTALS)
     basepath = 'datafolder/'
     for entry in os.listdir(basepath):
         name, ext = os.path.splitext(entry)
         if os.path.isfile(os.path.join(basepath, entry)):
             if ext == '.csv':
-                print(entry)
-    check = input("Input Data: ")
+                table.add_row(entry)
+    console.print(table)
+    check = input("\nInput Data: ")
     os.listdir(basepath)
     idsdata = pd.read_csv(basepath + check)
     df = pd.DataFrame(idsdata)
@@ -36,7 +41,7 @@ def trainRandomForestClassifier():
     y = df.iloc[:, -1].values
 
     # Select Test Size
-    testsize = float(click.prompt('Input test size: [float value]'))
+    testsize = float(click.prompt('\nInput test size: [float value]'))
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=testsize, random_state=0)
 
     # Machine Learning
@@ -49,8 +54,7 @@ def trainRandomForestClassifier():
 
     # Print Output
     from sklearn import metrics
-    print("Random Forest Classifier Result: ")
-    table = Table(show_header=True, header_style="bold magenta")
+    table = Table(title="\nRandom Forest Classifier Results", show_header=True, header_style="bold magenta")
     table.add_column("Precision")
     table.add_column("Recall")
     table.add_column("Accuracy", justify="right")
@@ -88,17 +92,37 @@ def trainRandomForestClassifier():
     console.print(table)
     print("Confusion Matrix: \n", metrics.confusion_matrix(y_test, y_pred))
 
+    # Save Function
+    savepath = 'savedmodels/'
+    save = (click.prompt(click.style('\nWould you like to save the trained model ?(Y/N)', fg='yellow')))
+    if save == 'Y' or save == 'y':
+        clf.fit(X_train, y_train)
+        rmext = os.path.splitext(check)[0]
+        addname = os.path.join('(rfc)')
+        savefile = savepath + rmext + addname
+        pickle.dump(clf, open(savefile, 'wb'))
+        table = Table(show_header=False, box=box.ROUNDED, safe_box=False)
+        table.add_row("[#4682B4]Model Saved[/#4682B4]")
+        console.print(table)
+    else:
+        table = Table(show_header=False, box=box.ROUNDED, safe_box=False)
+        table.add_row("[#FF8C00]Model Not Saved[/#FF8C00]")
+        console.print(table)
+        pass
+
 
 def trainDecisionTreeClassifier():
     # Select Dataset from Folder
+    table = Table(show_header=False, title="\n[#8A2BE2]List of Datasets:[/#8A2BE2]", box=box.HORIZONTALS)
     basepath = 'datafolder/'
     for entry in os.listdir(basepath):
         name, ext = os.path.splitext(entry)
         if os.path.isfile(os.path.join(basepath, entry)):
             if ext == '.csv':
-                print("List of Datasets: ")
-                print(entry)
-    check = input("Input Data: ")
+                table.add_row(entry)
+    console.print(table)
+    check = input("\nInput Data: ")
+
     os.listdir(basepath)
     idsdata = pd.read_csv(basepath + check)
     df = pd.DataFrame(idsdata)
@@ -109,9 +133,8 @@ def trainDecisionTreeClassifier():
         .str.replace("/", "").str.replace(":", "")
     X = df.iloc[:, :-1].values
     y = df.iloc[:, -1].values
-
     # Select Test Size
-    testsize = float(click.prompt('Input test size: [float value]'))
+    testsize = float(click.prompt('\nInput test size: [float value]'))
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=testsize, random_state=1)
 
     # Machine Learning
@@ -123,25 +146,74 @@ def trainDecisionTreeClassifier():
     y_pred = dt.predict(X_test)
 
     # Print Output
-    from sklearn import metrics
-    print("Decision Tree Classifier Result: ")
-    print("Precision:", metrics.precision_score(y_test, y_pred, average='macro'))
-    print("Recall:", metrics.recall_score(y_test, y_pred, average='macro'))
-    print("Accuracy:", metrics.accuracy_score(y_test, y_pred))
-    print("F1:", metrics.f1_score(y_test, y_pred, average='macro'))
+    table = Table(title="\nDecision Tree Classifier Result: ", show_header=True, header_style="bold magenta")
+    table.add_column("Precision")
+    table.add_column("Recall")
+    table.add_column("Accuracy", justify="right")
+    table.add_column("F1 Score", justify="right")
+    p = str(metrics.precision_score(y_test, y_pred, average='macro'))
+    r = str(metrics.recall_score(y_test, y_pred, average='macro'))
+    a = str(metrics.accuracy_score(y_test, y_pred))
+    f = str(metrics.f1_score(y_test, y_pred, average='macro'))
+    table.add_row(
+        p,
+        r,
+        a,
+        f
+    )
+    # round p
+    rp = Decimal(p)
+    round(rp, 2)
+    nep = str(round(rp, 2))
+    # round r
+    rr = Decimal(r)
+    round(rr, 2)
+    ner = str(round(rr, 2))
+    # round a
+    ra = Decimal(a)
+    nea = str(round(ra, 2))
+    # round f
+    rf = Decimal(f)
+    nef = str(round(rf, 2))
+    table.add_row(
+        nep,
+        ner,
+        nea,
+        nef
+    )
+    console.print(table)
     print("Confusion Matrix: \n", metrics.confusion_matrix(y_test, y_pred))
+
+    # Save Function
+    savepath = 'savedmodels/'
+    save = (click.prompt(click.style('Would you like to save the trained model ?(Y/N)', fg='yellow')))
+    if save == 'Y' or save == 'y':
+        dt.fit(X_train, y_train)
+        rmext = os.path.splitext(check)[0]
+        addname = os.path.join('(rfc)')
+        savefile = savepath + rmext + addname
+        pickle.dump(dt, open(savefile, 'wb'))
+        table = Table(show_header=False, box=box.ROUNDED, safe_box=False)
+        table.add_row("[#4682B4]Model Saved[/#4682B4]")
+        console.print(table)
+    else:
+        table = Table(show_header=False, box=box.ROUNDED, safe_box=False)
+        table.add_row("[#FF8C00]Model Not Saved[/#FF8C00]")
+        console.print(table)
+        pass
 
 
 def trainLogisticRegression():
     # Select Dataset from Folder
-    print("List of Datasets: ")
+    table = Table(show_header=False, title="\n[#8A2BE2]List of Datasets:[/#8A2BE2]", box=box.HORIZONTALS)
     basepath = 'datafolder/'
     for entry in os.listdir(basepath):
         name, ext = os.path.splitext(entry)
         if os.path.isfile(os.path.join(basepath, entry)):
             if ext == '.csv':
-                print(entry)
-    check = input("Input Data: ")
+                table.add_row(entry)
+    console.print(table)
+    check = input("\nInput Data: ")
     os.listdir(basepath)
     idsdata = pd.read_csv(basepath + check)
     df = pd.DataFrame(idsdata)
@@ -154,7 +226,7 @@ def trainLogisticRegression():
     y = df.iloc[:, -1].values
 
     # Select Test Size
-    testsize = float(click.prompt('Input test size: [float value]'))
+    testsize = float(click.prompt('\nInput test size: [float value]'))
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=testsize, random_state=0)
 
     # Machine Learning
@@ -165,12 +237,43 @@ def trainLogisticRegression():
 
     # Print Output
     from sklearn import metrics
-    print("Logistic Regression Result: ")
-    print("Precision:", metrics.precision_score(y_test, y_pred, average='macro'))
-    # print("Recall:", metrics.recall_score(y_test, y_pred, average='macro'))
-    # print("Accuracy:", metrics.accuracy_score(y_test, y_pred))
-    # print("F1:", metrics.f1_score(y_test, y_pred, average='macro'))
-    # print("Confusion Matrix: \n", metrics.confusion_matrix(y_test, y_pred))
+    table = Table(title="\nLogistic Regression Result: ", show_header=True, header_style="bold magenta")
+    table.add_column("Precision")
+    table.add_column("Recall")
+    table.add_column("Accuracy", justify="right")
+    table.add_column("F1 Score", justify="right")
+    p = str(metrics.precision_score(y_test, y_pred, average='macro'))
+    r = str(metrics.recall_score(y_test, y_pred, average='macro'))
+    a = str(metrics.accuracy_score(y_test, y_pred))
+    f = str(metrics.f1_score(y_test, y_pred, average='macro'))
+    table.add_row(
+        p,
+        r,
+        a,
+        f
+    )
+    # round p
+    rp = Decimal(p)
+    round(rp, 2)
+    nep = str(round(rp, 2))
+    # round r
+    rr = Decimal(r)
+    round(rr, 2)
+    ner = str(round(rr, 2))
+    # round a
+    ra = Decimal(a)
+    nea = str(round(ra, 2))
+    # round f
+    rf = Decimal(f)
+    nef = str(round(rf, 2))
+    table.add_row(
+        nep,
+        ner,
+        nea,
+        nef
+    )
+    console.print(table)
+    print("Confusion Matrix: \n", metrics.confusion_matrix(y_test, y_pred))
 
 
 def trainSVM():
@@ -205,26 +308,61 @@ def trainSVM():
     print('model fitted')
     y_pred = clf.predict(X_test)
     print('model predicted')
-    from sklearn import metrics
 
-    print("SVM Result: ")
-    print("Precision:", metrics.precision_score(y_test, y_pred, average='macro'))
-    print("Recall:", metrics.recall_score(y_test, y_pred, average='macro'))
-    print("Accuracy:", metrics.accuracy_score(y_test, y_pred))
-    print("F1:", metrics.f1_score(y_test, y_pred, average='macro'))
+    # Print Output
+    from sklearn import metrics
+    table = Table(title="\nSVM Result: ", show_header=True, header_style="bold magenta")
+    table.add_column("Precision")
+    table.add_column("Recall")
+    table.add_column("Accuracy", justify="right")
+    table.add_column("F1 Score", justify="right")
+    p = str(metrics.precision_score(y_test, y_pred, average='macro'))
+    r = str(metrics.recall_score(y_test, y_pred, average='macro'))
+    a = str(metrics.accuracy_score(y_test, y_pred))
+    f = str(metrics.f1_score(y_test, y_pred, average='macro'))
+    table.add_row(
+        p,
+        r,
+        a,
+        f
+    )
+    # round p
+    rp = Decimal(p)
+    round(rp, 2)
+    nep = str(round(rp, 2))
+    # round r
+    rr = Decimal(r)
+    round(rr, 2)
+    ner = str(round(rr, 2))
+    # round a
+    ra = Decimal(a)
+    nea = str(round(ra, 2))
+    # round f
+    rf = Decimal(f)
+    nef = str(round(rf, 2))
+    table.add_row(
+        nep,
+        ner,
+        nea,
+        nef
+    )
+    console.print(table)
     print("Confusion Matrix: \n", metrics.confusion_matrix(y_test, y_pred))
+
+
 
 
 def trainGaussianNB():
     # Select Dataset from Folder
+    table = Table(show_header=False, title="\n[#8A2BE2]List of Datasets:[/#8A2BE2]", box=box.HORIZONTALS)
     basepath = 'datafolder/'
     for entry in os.listdir(basepath):
         name, ext = os.path.splitext(entry)
         if os.path.isfile(os.path.join(basepath, entry)):
             if ext == '.csv':
-                print("List of Datasets: ")
-                print(entry)
-    check = input("Input Data: ")
+                table.add_row(entry)
+    console.print(table)
+    check = input("\nInput Data: ")
     os.listdir(basepath)
     idsdata = pd.read_csv(basepath + check)
     df = pd.DataFrame(idsdata)
@@ -237,7 +375,7 @@ def trainGaussianNB():
     y = df.iloc[:, -1].values
 
     # Select Test Size
-    testsize = float(click.prompt('Input test size: [float value]'))
+    testsize = float(click.prompt('\nInput test size: [float value]'))
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=testsize, random_state=0)
 
     # Machine Learning
@@ -248,25 +386,75 @@ def trainGaussianNB():
 
     # Print Output
     from sklearn import metrics
-    print("GaussianNB Result: ")
-    print("Accuracy:", metrics.accuracy_score(y_test, y_pred))
-    print("Precision:", metrics.precision_score(y_test, y_pred, average='macro'))
-    print("Recall:", metrics.recall_score(y_test, y_pred, average='macro'))
-    print("Accuracy:", metrics.accuracy_score(y_test, y_pred))
-    print("F1:", metrics.f1_score(y_test, y_pred, average='macro'))
+    table = Table(title="\nGaussianNB Result: ", show_header=True, header_style="bold magenta")
+    table.add_column("Precision")
+    table.add_column("Recall")
+    table.add_column("Accuracy", justify="right")
+    table.add_column("F1 Score", justify="right")
+    p = str(metrics.precision_score(y_test, y_pred, average='macro'))
+    r = str(metrics.recall_score(y_test, y_pred, average='macro'))
+    a = str(metrics.accuracy_score(y_test, y_pred))
+    f = str(metrics.f1_score(y_test, y_pred, average='macro'))
+    table.add_row(
+        p,
+        r,
+        a,
+        f
+    )
+    # round p
+    rp = Decimal(p)
+    round(rp, 2)
+    nep = str(round(rp, 2))
+    # round r
+    rr = Decimal(r)
+    round(rr, 2)
+    ner = str(round(rr, 2))
+    # round a
+    ra = Decimal(a)
+    nea = str(round(ra, 2))
+    # round f
+    rf = Decimal(f)
+    nef = str(round(rf, 2))
+    table.add_row(
+        nep,
+        ner,
+        nea,
+        nef
+    )
+    console.print(table)
     print("Confusion Matrix: \n", metrics.confusion_matrix(y_test, y_pred))
+
+    # Save Function
+    savepath = 'savedmodels/'
+    save = (click.prompt(click.style('\nWould you like to save the trained model ?(Y/N)', fg='yellow')))
+    if save == 'Y' or save == 'y':
+        gnb.fit(X_train, y_train)
+        rmext = os.path.splitext(check)[0]
+        addname = os.path.join('(rfc)')
+        savefile = savepath + rmext + addname
+        pickle.dump(gnb, open(savefile, 'wb'))
+        table = Table(show_header=False, box=box.ROUNDED, safe_box=False)
+        table.add_row("[#4682B4]Model Saved[/#4682B4]")
+        console.print(table)
+    else:
+        table = Table(show_header=False, box=box.ROUNDED, safe_box=False)
+        table.add_row("[#FF8C00]Model Not Saved[/#FF8C00]")
+        console.print(table)
+        pass
 
 
 def trainBernoulliNB():
     # Select Dataset from Folder
+    table = Table(show_header=False, title="\n[#8A2BE2]List of Datasets:[/#8A2BE2]", box=box.HORIZONTALS)
     basepath = 'datafolder/'
     for entry in os.listdir(basepath):
         name, ext = os.path.splitext(entry)
         if os.path.isfile(os.path.join(basepath, entry)):
             if ext == '.csv':
-                print("List of Datasets: ")
-                print(entry)
-    check = input("Input Data: ")
+                table.add_row(entry)
+    console.print(table)
+    check = input("\nInput Data: ")
+
     os.listdir(basepath)
     idsdata = pd.read_csv(basepath + check)
     df = pd.DataFrame(idsdata)
@@ -279,36 +467,85 @@ def trainBernoulliNB():
     y = df.iloc[:, -1].values
 
     # Select Test Size
-    testsize = float(click.prompt('Input test size: [float value]'))
+    testsize = float(click.prompt('\nInput test size: [float value]'))
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=testsize)
 
     # Machine Learning
     from sklearn.naive_bayes import BernoulliNB
-    gnb = BernoulliNB()
-    gnb.fit(X_train, y_train)
-    y_pred = gnb.predict(X_test)
+    bnb = BernoulliNB()
+    bnb.fit(X_train, y_train)
+    y_pred = bnb.predict(X_test)
 
     # Print Output
     from sklearn import metrics
-    print("BernoulliNB Result: ")
-    print("Accuracy:", metrics.accuracy_score(y_test, y_pred))
-    print("Precision:", metrics.precision_score(y_test, y_pred, average='macro'))
-    print("Recall:", metrics.recall_score(y_test, y_pred, average='macro'))
-    print("Accuracy:", metrics.accuracy_score(y_test, y_pred))
-    print("F1:", metrics.f1_score(y_test, y_pred, average='macro'))
+    table = Table(title="\nBernoulliNB Result: ", show_header=True, header_style="bold magenta")
+    table.add_column("Precision")
+    table.add_column("Recall")
+    table.add_column("Accuracy", justify="right")
+    table.add_column("F1 Score", justify="right")
+    p = str(metrics.precision_score(y_test, y_pred, average='macro'))
+    r = str(metrics.recall_score(y_test, y_pred, average='macro'))
+    a = str(metrics.accuracy_score(y_test, y_pred))
+    f = str(metrics.f1_score(y_test, y_pred, average='macro'))
+    table.add_row(
+        p,
+        r,
+        a,
+        f
+    )
+    # round p
+    rp = Decimal(p)
+    round(rp, 2)
+    nep = str(round(rp, 2))
+    # round r
+    rr = Decimal(r)
+    round(rr, 2)
+    ner = str(round(rr, 2))
+    # round a
+    ra = Decimal(a)
+    nea = str(round(ra, 2))
+    # round f
+    rf = Decimal(f)
+    nef = str(round(rf, 2))
+    table.add_row(
+        nep,
+        ner,
+        nea,
+        nef
+    )
+    console.print(table)
     print("Confusion Matrix: \n", metrics.confusion_matrix(y_test, y_pred))
+
+    # Save Function
+    savepath = 'savedmodels/'
+    save = (click.prompt(click.style('\nWould you like to save the trained model ?(Y/N)', fg='yellow')))
+    if save == 'Y' or save == 'y':
+        bnb.fit(X_train, y_train)
+        rmext = os.path.splitext(check)[0]
+        addname = os.path.join('(rfc)')
+        savefile = savepath + rmext + addname
+        pickle.dump(bnb, open(savefile, 'wb'))
+        table = Table(show_header=False, box=box.ROUNDED, safe_box=False)
+        table.add_row("[#4682B4]Model Saved[/#4682B4]")
+        console.print(table)
+    else:
+        table = Table(show_header=False, box=box.ROUNDED, safe_box=False)
+        table.add_row("[#FF8C00]Model Not Saved[/#FF8C00]")
+        console.print(table)
+        pass
 
 
 def trainAll():
     # Select Dataset from Folder
+    table = Table(show_header=False, title="\n[#8A2BE2]List of Datasets:[/#8A2BE2]", box=box.HORIZONTALS)
     basepath = 'datafolder/'
-    print("List of Datasets: ")
     for entry in os.listdir(basepath):
         name, ext = os.path.splitext(entry)
         if os.path.isfile(os.path.join(basepath, entry)):
             if ext == '.csv':
-                print(entry)
-    check = input("Input Data: ")
+                table.add_row(entry)
+    console.print(table)
+    check = input("\nInput Data: ")
     os.listdir(basepath)
     idsdata = pd.read_csv(basepath + check)
     df = pd.DataFrame(idsdata)
@@ -331,10 +568,10 @@ def trainAll():
     np.nan_to_num(y_train)
     clf.fit(X_train, y_train)
     y_pred = clf.predict(X_test)
-    from sklearn import metrics
 
-    print("Random Forest Classifier Result: ")
-    table = Table(show_header=True, header_style="bold magenta")
+    # Random Forest Classifier Output
+    from sklearn import metrics
+    table = Table(title="\nRandom Forest Classifier Results", show_header=True, header_style="bold magenta")
     table.add_column("Precision")
     table.add_column("Recall")
     table.add_column("Accuracy", justify="right")
@@ -370,7 +607,7 @@ def trainAll():
         nef
     )
     console.print(table)
-    RAcc = metrics.accuracy_score(y_test, y_pred)
+    RAcc = metrics.accuracy_score(y_test, y_pred)  # For Ranking
     print("Confusion Matrix: \n", metrics.confusion_matrix(y_test, y_pred))
 
     # Decision Tree Classifier
@@ -383,8 +620,8 @@ def trainAll():
     y_pred = dt.predict(X_test)
     from sklearn import metrics
 
-    print("Decision Tree Classifier Result: ")
-    table = Table(show_header=True, header_style="bold magenta")
+    # Decision Tree Classifier Output
+    table = Table(title="\nDecision Tree Classifier Result: ", show_header=True, header_style="bold magenta")
     table.add_column("Precision")
     table.add_column("Recall")
     table.add_column("Accuracy", justify="right")
@@ -420,7 +657,7 @@ def trainAll():
         nef
     )
     console.print(table)
-    DAcc = metrics.accuracy_score(y_test, y_pred)
+    DAcc = metrics.accuracy_score(y_test, y_pred)  # For Ranking
     print("Confusion Matrix: \n", metrics.confusion_matrix(y_test, y_pred))
 
     # Logistic Regression
@@ -468,21 +705,21 @@ def trainAll():
         nef
     )
     console.print(table)
-    LAcc = metrics.accuracy_score(y_test, y_pred)
+    LAcc = metrics.accuracy_score(y_test, y_pred)  # For Ranking
     print("Confusion Matrix: \n", metrics.confusion_matrix(y_test, y_pred))
 
     # SVM
 
-    # GuassianNB
+    # GaussianNB
     from sklearn.naive_bayes import GaussianNB
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=testsize)
     gnb = GaussianNB()
     gnb.fit(X_train, y_train)
     y_pred = gnb.predict(X_test)
-    from sklearn import metrics
 
-    print("GaussianNB Result: ")
-    table = Table(show_header=True, header_style="bold magenta")
+    # GaussianNB Output
+    from sklearn import metrics
+    table = Table(title="\nGaussianNB Result: ", show_header=True, header_style="bold magenta")
     table.add_column("Precision")
     table.add_column("Recall")
     table.add_column("Accuracy", justify="right")
@@ -518,7 +755,7 @@ def trainAll():
         nef
     )
     console.print(table)
-    GAcc = metrics.accuracy_score(y_test, y_pred)
+    GAcc = metrics.accuracy_score(y_test, y_pred)  # For Ranking
     print("Confusion Matrix: \n", metrics.confusion_matrix(y_test, y_pred))
 
     # BernoulliNB
@@ -527,10 +764,10 @@ def trainAll():
     gnb = BernoulliNB()
     gnb.fit(X_train, y_train)
     y_pred = gnb.predict(X_test)
-    from sklearn import metrics
 
-    print("BernoulliNB Result: ")
-    table = Table(show_header=True, header_style="bold magenta")
+    # BernoulliNB Output
+    from sklearn import metrics
+    table = Table(title="\nBernoulliNB Result: ", show_header=True, header_style="bold magenta")
     table.add_column("Precision")
     table.add_column("Recall")
     table.add_column("Accuracy", justify="right")
@@ -566,12 +803,12 @@ def trainAll():
         nef
     )
     console.print(table)
-    BAcc = metrics.accuracy_score(y_test, y_pred)
+    BAcc = metrics.accuracy_score(y_test, y_pred)  # For Ranking
     print("Confusion Matrix: \n", metrics.confusion_matrix(y_test, y_pred))
 
     ranking = [RAcc, DAcc, LAcc, GAcc, BAcc]
     ranking.sort()
-    print("Summary: ")
+    print("\nSummary: ")
     print("Highest Accuracy: ", ranking[-1])
     if ranking[-1] == RAcc:
         console.print("Suggested Model: Random Forest Classifier", style="#00FF00")

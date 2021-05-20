@@ -7,6 +7,5 @@ flowgar getflow [Input File] [Output File] # Converts a PCAP file to a CSV 'flow
 ```
 
 # WireGar
-
-Welcome to WireGar. An all-in-one forensic tool for network packet conversion and machine learning 
-in an attempt to get good grades created by Brandon Cheong 
+  Welcome to WireGar. An all-in-one forensic tool for network packet conversion and machine learning 
+in an attempt to get good grades for a Final Year Project created by Brandon Cheong (195146C)

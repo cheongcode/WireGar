@@ -1,5 +1,5 @@
 import time
-
+import click
 
 def printProgressBar(iteration, total, prefix='', suffix='', decimals=1, length=100, fill='█', printEnd="\r"):
     percent = ("{0:." + str(decimals) + "f}").format(100 * (iteration / float(total)))
@@ -10,6 +10,28 @@ def printProgressBar(iteration, total, prefix='', suffix='', decimals=1, length=
     if iteration == total:
         print()
 
+def progress():
+    """
+    Demonstrates how a progress bar can be tied to processing of
+    an iterable - this time with colorful output.
+    """
+
+    # Could be a list, tuple and a whole bunch of other containers
+    iterable = range(256)
+
+    fill_char = click.style("#", fg="green")
+    empty_char = click.style("-", fg="white", dim=True)
+    label_text = "Loading Gar..."
+
+    with click.progressbar(
+            iterable=iterable,
+            label=label_text,
+            fill_char=fill_char,
+            empty_char=empty_char
+        ) as items:
+        for item in items:
+            # Do some processing
+            time.sleep(0.01) # This is really hard work
 
 def load():
     items = list(range(0, 57))
