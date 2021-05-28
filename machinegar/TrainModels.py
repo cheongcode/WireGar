@@ -7,6 +7,7 @@ from rich import *
 from rich.console import Console
 from rich.table import Column, Table
 from decimal import Decimal
+from rich.progress import track
 
 console = Console()
 
@@ -583,3 +584,5 @@ def trainAll():
         console.print("Suggested Model: GaussianNB", style="#00FF00")
     elif ranking[-1] == BAcc:
         console.print("Suggested Model: BernoulliNB", style="#00FF00")
+
+trainAll()

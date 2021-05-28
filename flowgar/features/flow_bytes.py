@@ -4,6 +4,7 @@ from .context.packet_direction import PacketDirection
 from .packet_time import PacketTime
 from decimal import *
 
+
 class FlowBytes:
     """Extracts features from the traffic related to the bytes in a flow"""
 
@@ -244,7 +245,7 @@ class FlowBytes:
         else:
             if self.feature.backward_bulk_count != 0:
                 return (
-                    self.feature.backward_bulk_size / self.feature.backward_bulk_count
+                        self.feature.backward_bulk_size / self.feature.backward_bulk_count
                 )
         return 0
 
@@ -252,14 +253,14 @@ class FlowBytes:
         if packet_direction == PacketDirection.FORWARD:
             if self.feature.forward_bulk_count != 0:
                 return (
-                    self.feature.forward_bulk_packet_count
-                    / self.feature.forward_bulk_count
+                        self.feature.forward_bulk_packet_count
+                        / self.feature.forward_bulk_count
                 )
         else:
             if self.feature.backward_bulk_count != 0:
                 return (
-                    self.feature.backward_bulk_packet_count
-                    / self.feature.backward_bulk_count
+                        self.feature.backward_bulk_packet_count
+                        / self.feature.backward_bulk_count
                 )
         return 0
 
@@ -268,7 +269,7 @@ class FlowBytes:
             if self.feature.forward_bulk_count != 0:
                 try:
                     return (
-                        self.feature.forward_bulk_size / self.feature.forward_bulk_duration
+                            self.feature.forward_bulk_size / self.feature.forward_bulk_duration
                     )
                 except ZeroDivisionError:
                     return 0
@@ -276,11 +277,10 @@ class FlowBytes:
             if self.feature.backward_bulk_count != 0:
                 try:
                     return (
-                        self.feature.backward_bulk_size
-                        / self.feature.backward_bulk_duration
+                            self.feature.backward_bulk_size
+                            / self.feature.backward_bulk_duration
                     )
                 except ZeroDivisionError:
                     return 0
 
         return 0
-

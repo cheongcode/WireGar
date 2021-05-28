@@ -10,6 +10,9 @@ from decimal import Decimal
 import pickle
 from sklearn import metrics
 from rich import box
+from rich.progress import track
+from rich.progress import Progress
+import time
 
 console = Console()
 
@@ -35,8 +38,8 @@ def trainRandomForestClassifier():
 
     # Data Clean
     df = df.replace([np.inf, -np.inf], np.nan).dropna(axis=0)
-    df['Timestamp'] = df['Timestamp'].str.replace(" ", "") \
-        .str.replace("/", "").str.replace(":", "")
+    # df.drop(df.columns[[0, 1, 2, 3]], axis=1, inplace=True) Enable this column if using other dataset other than IDS1718
+    df.drop(df.columns[2], axis=1, inplace=True)
     X = df.iloc[:, :-1].values
     y = df.iloc[:, -1].values
 
@@ -44,13 +47,19 @@ def trainRandomForestClassifier():
     testsize = float(click.prompt('\nInput test size: [float value]'))
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=testsize, random_state=0)
 
-    # Machine Learning
-    from sklearn.ensemble import RandomForestClassifier
-    clf = RandomForestClassifier(n_estimators=300)
-    np.nan_to_num(X_train)
-    np.nan_to_num(y_train)
-    clf.fit(X_train, y_train)
-    y_pred = clf.predict(X_test)
+    # Machine Learning with Progress Bar
+    with Progress() as progress:
+        print("")
+        train_progress = progress.add_task("[cyan]Training Model...", total=1000)
+        from sklearn.ensemble import RandomForestClassifier
+        clf = RandomForestClassifier(n_estimators=300)
+        np.nan_to_num(X_train)
+        np.nan_to_num(y_train)
+        clf.fit(X_train, y_train)
+        y_pred = clf.predict(X_test)
+        while not progress.finished:
+            progress.update(train_progress, advance=19)
+            time.sleep(0.01)
 
     # Print Output
     from sklearn import metrics
@@ -99,7 +108,7 @@ def trainRandomForestClassifier():
         clf.fit(X_train, y_train)
         rmext = os.path.splitext(check)[0]
         addname = os.path.join('(rfc)')
-        savefile = savepath + rmext + addname
+        savefile = savepath + rmext + addname + ".sav"
         pickle.dump(clf, open(savefile, 'wb'))
         table = Table(show_header=False, box=box.ROUNDED, safe_box=False)
         table.add_row("[#4682B4]Model Saved[/#4682B4]")
@@ -129,21 +138,26 @@ def trainDecisionTreeClassifier():
 
     # Data Clean
     df = df.replace([np.inf, -np.inf], np.nan).dropna(axis=0)
-    df['Timestamp'] = df['Timestamp'].str.replace(" ", "") \
-        .str.replace("/", "").str.replace(":", "")
+    df.drop(df.columns[2], axis=1, inplace=True)
     X = df.iloc[:, :-1].values
     y = df.iloc[:, -1].values
     # Select Test Size
     testsize = float(click.prompt('\nInput test size: [float value]'))
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=testsize, random_state=1)
 
-    # Machine Learning
-    from sklearn.tree import DecisionTreeClassifier
-    dt = DecisionTreeClassifier()
-    np.nan_to_num(X_train)
-    np.nan_to_num(y_train)
-    dt.fit(X_train, y_train)
-    y_pred = dt.predict(X_test)
+    # Machine Learning with Progress Bar
+    with Progress() as progress:
+        print("")
+        train_progress = progress.add_task("[cyan]Training Model...", total=1000)
+        from sklearn.tree import DecisionTreeClassifier
+        dt = DecisionTreeClassifier()
+        np.nan_to_num(X_train)
+        np.nan_to_num(y_train)
+        dt.fit(X_train, y_train)
+        y_pred = dt.predict(X_test)
+        while not progress.finished:
+            progress.update(train_progress, advance=19)
+            time.sleep(0.01)
 
     # Print Output
     table = Table(title="\nDecision Tree Classifier Result: ", show_header=True, header_style="bold magenta")
@@ -220,8 +234,7 @@ def trainLogisticRegression():
 
     # Data Clean
     df = df.replace([np.inf, -np.inf], np.nan).dropna(axis=0)
-    df['Timestamp'] = df['Timestamp'].str.replace(" ", "") \
-        .str.replace("/", "").str.replace(":", "")
+    df.drop(df.columns[2], axis=1, inplace=True)
     X = df.iloc[:, :-1].values
     y = df.iloc[:, -1].values
 
@@ -229,11 +242,17 @@ def trainLogisticRegression():
     testsize = float(click.prompt('\nInput test size: [float value]'))
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=testsize, random_state=0)
 
-    # Machine Learning
-    from sklearn.linear_model import LogisticRegression
-    logreg = LogisticRegression(solver='sag')
-    logreg.fit(X_train, y_train)
-    y_pred = logreg.predict(X_test)
+    # Machine Learning with Progress Bar
+    with Progress() as progress:
+        print("")
+        train_progress = progress.add_task("[cyan]Training Model...", total=1000)
+        from sklearn.linear_model import LogisticRegression
+        logreg = LogisticRegression(solver='sag')
+        logreg.fit(X_train, y_train)
+        y_pred = logreg.predict(X_test)
+        while not progress.finished:
+            progress.update(train_progress, advance=19)
+            time.sleep(0.01)
 
     # Print Output
     from sklearn import metrics
@@ -277,36 +296,43 @@ def trainLogisticRegression():
 
 
 def trainSVM():
-    # Still in progress
-    # Input Reading Of Data
-    data = click.prompt('Input your dataset: ')
-    idsdata = pd.read_csv(data)
+    # Select Dataset from Folder
+    table = Table(show_header=False, title="\n[#8A2BE2]List of Datasets:[/#8A2BE2]", box=box.HORIZONTALS)
+    basepath = 'datafolder/'
+    for entry in os.listdir(basepath):
+        name, ext = os.path.splitext(entry)
+        if os.path.isfile(os.path.join(basepath, entry)):
+            if ext == '.csv':
+                table.add_row(entry)
+    console.print(table)
+    check = input("\nInput Data: ")
+    os.listdir(basepath)
+    idsdata = pd.read_csv(basepath + check)
     df = pd.DataFrame(idsdata)
 
+    # Data Clean
     df = df.replace([np.inf, -np.inf], np.nan).dropna(axis=0)
-    df['Timestamp'] = df['Timestamp'].str.replace(" ", "") \
-        .str.replace("/", "").str.replace(":", "")
+    df.drop(df.columns[2], axis=1, inplace=True)
     X = df.iloc[:, :-1].values
     y = df.iloc[:, -1].values
-    print('Data cleaned')
+
+    # Select Test Size
+    testsize = float(click.prompt('\nInput test size: [float value]'))
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=testsize, random_state=0)
+
     # Machine Learning
     from sklearn import svm
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=109)
-
-    clf = svm.SVC(kernel='linear')
-    print('algo activated')
+    model = svm.SVC(kernel='linear')
     np.nan_to_num(X_train)
     np.nan_to_num(y_train)
-    print('nan to num')
 
     from sklearn import preprocessing
     X_train = preprocessing.minmax_scale(X_train)
     X_test = preprocessing.minmax_scale(X_test)
-    # y_train = preprocessing.scale(y_train)
 
-    clf.fit(X_train, y_train)
+    model.fit(X_train, y_train)
     print('model fitted')
-    y_pred = clf.predict(X_test)
+    y_pred = model.predict(X_test)
     print('model predicted')
 
     # Print Output
@@ -350,8 +376,6 @@ def trainSVM():
     print("Confusion Matrix: \n", metrics.confusion_matrix(y_test, y_pred))
 
 
-
-
 def trainGaussianNB():
     # Select Dataset from Folder
     table = Table(show_header=False, title="\n[#8A2BE2]List of Datasets:[/#8A2BE2]", box=box.HORIZONTALS)
@@ -369,8 +393,7 @@ def trainGaussianNB():
 
     # Data Clean
     df = df.replace([np.inf, -np.inf], np.nan).dropna(axis=0)
-    df['Timestamp'] = df['Timestamp'].str.replace(" ", "") \
-        .str.replace("/", "").str.replace(":", "")
+    df.drop(df.columns[2], axis=1, inplace=True)
     X = df.iloc[:, :-1].values
     y = df.iloc[:, -1].values
 
@@ -378,11 +401,17 @@ def trainGaussianNB():
     testsize = float(click.prompt('\nInput test size: [float value]'))
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=testsize, random_state=0)
 
-    # Machine Learning
-    from sklearn.naive_bayes import GaussianNB
-    gnb = GaussianNB()
-    gnb.fit(X_train, y_train)
-    y_pred = gnb.predict(X_test)
+    # Machine Learning with Progress Bar
+    with Progress() as progress:
+        print("")
+        train_progress = progress.add_task("[cyan]Training Model...", total=1000)
+        from sklearn.naive_bayes import GaussianNB
+        gnb = GaussianNB()
+        gnb.fit(X_train, y_train)
+        y_pred = gnb.predict(X_test)
+        while not progress.finished:
+            progress.update(train_progress, advance=19)
+            time.sleep(0.01)
 
     # Print Output
     from sklearn import metrics
@@ -461,8 +490,7 @@ def trainBernoulliNB():
 
     # Data Clean
     df = df.replace([np.inf, -np.inf], np.nan).dropna(axis=0)
-    df['Timestamp'] = df['Timestamp'].str.replace(" ", "") \
-        .str.replace("/", "").str.replace(":", "")
+    df.drop(df.columns[2], axis=1, inplace=True)
     X = df.iloc[:, :-1].values
     y = df.iloc[:, -1].values
 
@@ -471,10 +499,16 @@ def trainBernoulliNB():
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=testsize)
 
     # Machine Learning
-    from sklearn.naive_bayes import BernoulliNB
-    bnb = BernoulliNB()
-    bnb.fit(X_train, y_train)
-    y_pred = bnb.predict(X_test)
+    with Progress() as progress:
+        print("")
+        train_progress = progress.add_task("[cyan]Training Model...", total=1000)
+        from sklearn.naive_bayes import BernoulliNB
+        bnb = BernoulliNB()
+        bnb.fit(X_train, y_train)
+        y_pred = bnb.predict(X_test)
+        while not progress.finished:
+            progress.update(train_progress, advance=19)
+            time.sleep(0.01)
 
     # Print Output
     from sklearn import metrics
@@ -535,7 +569,7 @@ def trainBernoulliNB():
         pass
 
 
-def trainAll():
+def trainAllModels():
     # Select Dataset from Folder
     table = Table(show_header=False, title="\n[#8A2BE2]List of Datasets:[/#8A2BE2]", box=box.HORIZONTALS)
     basepath = 'datafolder/'
@@ -546,20 +580,20 @@ def trainAll():
                 table.add_row(entry)
     console.print(table)
     check = input("\nInput Data: ")
+
     os.listdir(basepath)
     idsdata = pd.read_csv(basepath + check)
     df = pd.DataFrame(idsdata)
 
     # Data Clean
     df = df.replace([np.inf, -np.inf], np.nan).dropna(axis=0)
-    df['Timestamp'] = df['Timestamp'].str.replace(" ", "") \
-        .str.replace("/", "").str.replace(":", "")
+    df.drop(df.columns[2], axis=1, inplace=True)
     X = df.iloc[:, :-1].values
     y = df.iloc[:, -1].values
 
-    # Input Test Size
-    testsize = float(click.prompt('Input test size: [float value]'))
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=testsize, random_state=0)
+    # Select Test Size
+    testsize = float(click.prompt('\nInput test size: [float value]'))
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=testsize)
 
     # Random Forest Classifier
     from sklearn.ensemble import RandomForestClassifier
@@ -618,9 +652,9 @@ def trainAll():
     np.nan_to_num(y_train)
     dt.fit(X_train, y_train)
     y_pred = dt.predict(X_test)
-    from sklearn import metrics
 
     # Decision Tree Classifier Output
+    from sklearn import metrics
     table = Table(title="\nDecision Tree Classifier Result: ", show_header=True, header_style="bold magenta")
     table.add_column("Precision")
     table.add_column("Recall")

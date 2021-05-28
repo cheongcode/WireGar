@@ -1,5 +1,7 @@
-import pyshark
-from machinegar.TrainAuto import *
+import csv
+import glob
+import shutil
+
 from netgar.startup import *
 import subprocess
 from click_shell import shell
@@ -11,8 +13,8 @@ from colorama import init
 from path import Path
 from rich import box
 import datetime
-
-
+import pyshark
+import pandas as pd
 
 init()
 console = Console()
@@ -20,7 +22,8 @@ console = Console()
 
 # Main Menu
 
-@shell(prompt='\033[0;31mwiregar>\033[00m', intro='Module Selection: [flowgar] [machinegar] [netgar] [swiftgar]\n Type '
+@shell(prompt='\033[0;31mwiregar>\033[00m', intro='Module Selection: [flowgar] [machinegar] [netgar] [swiftgar] ['
+                                                  'classgar] \n Type '
                                                   'in any module from the above '
                                                   'to start\n')
 def wiregar():
@@ -43,6 +46,12 @@ def machinegar():
 @wiregar.group()
 def netgar():
     """FOR NETWORK TOOLS AND ANALYSIS"""
+    pass
+
+
+@wiregar.group()
+def classgar():
+    """FOR EVALUATION OF SAVED MODELS ON UNKNOWN DATA"""
     pass
 
 
@@ -100,6 +109,7 @@ def pcapng2pcap(pcapng, pcap):  # Convert PCAPNG to PCAP
 @machinegar.command()
 def trainRFC():
     """Train the model with Random Forest Classifier"""
+
     try:
         trainRandomForestClassifier()
         table = Table(show_header=False, box=box.ROUNDED, safe_box=False)
@@ -139,18 +149,18 @@ def trainLR():
         console.print(table)
 
 
-@machinegar.command()
-def trainSVM():
-    """Train the model with SVM"""
-    try:
-        trainSVM()
-        table = Table(show_header=False, box=box.ROUNDED, safe_box=False)
-        table.add_row("[#00ff00]Support Vector Machine Training Succeeded[/#00ff00]")
-        console.print(table)
-    except:
-        table = Table(show_header=False, box=box.ROUNDED, safe_box=False)
-        table.add_row("[#ff0000]Error, Unable To Train[/#ff0000]")
-        console.print(table)
+# @machinegar.command()
+# def trainSVM():
+#     """Train the model with SVM"""
+#     try:
+#         trainSVM()
+#         table = Table(show_header=False, box=box.ROUNDED, safe_box=False)
+#         table.add_row("[#00ff00]Support Vector Machine Training Succeeded[/#00ff00]")
+#         console.print(table)
+#     except:
+#         table = Table(show_header=False, box=box.ROUNDED, safe_box=False)
+#         table.add_row("[#ff0000]Error, Unable To Train[/#ff0000]")
+#         console.print(table)
 
 
 @machinegar.command()
@@ -185,7 +195,7 @@ def trainBNB():
 def trainAll():
     """Train the model with all 6 models"""
     try:
-        trainAll()
+        trainAllModels()
         table = Table(show_header=False, box=box.ROUNDED, safe_box=False)
         table.add_row("[#00ff00]Succeeded In Training All Models[/#00ff00]")
         console.print(table)
@@ -199,7 +209,7 @@ def trainAll():
 @netgar.command()
 @click.argument('seconds', type=int)
 def getliveseconds(seconds):
-    """Get 10 seconds of live data"""
+    """Get live data in any amount of seconds"""
     try:
         capture = pyshark.LiveCapture(output_file="datafolder/live.pcap")
         capture.sniff(timeout=seconds)
@@ -238,11 +248,69 @@ def getconstantlive():
         console.print(table)
         pass
 
+
 @netgar.command()
 @click.argument('x')
 def ping(x):
     """Ping a network"""
     click.echo(subprocess.run('ping ' + x))
+
+
+@classgar.command()
+def start():
+    """Classification with saved model """
+    table = Table(show_header=False, title="\n[#8A2BE2]List of Datasets:[/#8A2BE2]", box=box.HORIZONTALS)
+    basepath = 'datafolder/'
+    for entry in os.listdir(basepath):
+        name, ext = os.path.splitext(entry)
+        if os.path.isfile(os.path.join(basepath, entry)):
+            if ext == '.csv':
+                table.add_row(entry)
+    console.print(table)
+    check = input("\nInput Unknown Data: ")
+    os.listdir(basepath)
+    idsdata = pd.read_csv(basepath + check)
+    df = pd.DataFrame(idsdata)
+    # Data Clean
+    df = df.replace([np.inf, -np.inf], np.nan).dropna(axis=0)
+    df.drop(df.columns[[0, 1, 2, 3]], axis=1, inplace=True)
+    df.drop(df.columns[[2]], axis=1, inplace=True)
+    print(df)
+    X = df.iloc[:, :-1].values
+    y = df.iloc[:, -1].values
+
+    # Select Test Size
+    # testsize = float(click.prompt('\nInput test size: [float value]'))
+    # X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=testsize, random_state=0)
+
+    table = Table(show_header=False, title="\n[#8A2BE2]List of Saved Models:[/#8A2BE2]", box=box.HORIZONTALS)
+    basepath2 = 'savedmodels/'
+    for entry in os.listdir(basepath2):
+        name, ext = os.path.splitext(entry)
+        if os.path.isfile(os.path.join(basepath2, entry)):
+            table.add_row(entry)
+    console.print(table)
+    check2 = input("\nInput Saved Model: ")
+    os.listdir(basepath2)
+    storedmodel = basepath2 + check2
+    loaded_model = pickle.load(open(storedmodel, 'rb'))
+    prediction = loaded_model.predict(X)
+    # Save Prediction
+    savepath = 'classgar/'
+    rmext = os.path.splitext(check)[0]
+    addname = os.path.join('(predicted)')
+    savefile = savepath + rmext + addname + "data"
+    orig = basepath + check
+    target = savefile + ".csv"
+    shutil.copyfile(orig, target)
+    # pd.DataFrame(prediction, columns=['predictions']).to_csv(savepath + "datatemp.csv")
+    data = pd.read_csv(target)
+    # data.insert(-1, "Prediction", prediction)
+    data['Prediction'] = prediction
+    data.to_csv(target, index=False)
+    table = Table(show_header=False, box=box.ROUNDED, safe_box=False)
+    table.add_row("[#4682B4]Prediction Saved[/#4682B4]")
+    console.print(table)
 
 
 @swiftgar.command()
