@@ -255,17 +255,19 @@ These scripts install the Rust toolchain if needed, build release binaries, and 
 wirehunt serve
 ```
 
-This starts a local web server at `http://localhost:8888` and opens your browser. Drag and drop any `.pcap` or `.pcapng` file onto the page. WireHunt analyzes it and displays results in a dark-themed dashboard with:
-- Flag detection banner (pulsing red when flags are found)
-- Findings panel with severity badges and MITRE ATT&CK tags
-- File metadata (name, SHA256, size, packets, duration, profile)
-- Stat cards (flows, streams, artifacts, credentials, findings, DNS, HTTP counts)
-- Protocol breakdown bar chart
+This starts a local web server at `http://localhost:8888` and opens your browser. Drag and drop any `.pcap` or `.pcapng` file onto the page. WireHunt analyzes it and displays a professional forensic dashboard with:
+- Auto-generated executive summary (plain English narrative of what happened)
+- MITRE ATT&CK kill chain visualization (13 phases with matched technique badges)
+- Flag detection banner (pulsing red when CTF flags are found)
+- Findings panel with severity badges, confidence scores, and MITRE ATT&CK tags (click for evidence drill-down)
+- File metadata, stat cards, protocol breakdown bar chart, top talkers chart
+- Interactive network graph (force-directed, hosts as nodes, flows as edges)
+- Dynamic protocol tabs: Flows, Streams, HTTP, DNS, TLS, FTP, SSH, Telnet, DHCP, SMB, Credentials, Artifacts, IOCs, Hosts, Timeline
+- IOC panel with async threat intelligence enrichment (VT, AbuseIPDB, Shodan, OTX, GeoIP country flags)
+- Stream viewer with Follow Stream from Flows table, Copy to clipboard, Hex view toggle
 - Search bar to filter all tables
-- Tabbed data tables: Flows, Streams, HTTP, DNS, Credentials, Artifacts
-- Stream viewer modal with text and hex views, client/server direction coloring
 - Flag highlighting throughout all views
-- JSON export button
+- JSON export + PDF export (print-friendly)
 
 Options:
 ```bash
@@ -426,16 +428,23 @@ WireGar/
           http.rs                    # HTTP/1.x parser
           tls.rs                     # TLS handshake + JA3/JA3S
           icmp.rs                    # ICMP parser
-          ftp.rs                     # FTP command parser
+          ftp.rs                     # FTP command + PASV/FTPS parser
           smtp.rs                    # SMTP session parser
+          ssh.rs                     # SSH banner + kex parser
+          telnet.rs                  # Telnet IAC + credential parser
+          dhcp.rs                    # DHCP lease parser
+          smb.rs                     # SMB/CIFS + NTLM parser
         extract.rs                   # Artifact extraction + flag detection + string sweep
-        detect.rs                    # Detection rule engine
+        detect.rs                    # Detection rule engine (18 categories, 25+ malware signatures)
         crypto.rs                    # Decode pipeline (base64, hex, xor, gzip, etc.)
         credentials.rs               # Credential harvester
         entropy.rs                   # Shannon entropy analysis
         index.rs                     # SQLite FTS5 search index + query DSL
-        timeline.rs                  # Timeline builder (stub)
-        hostprofile.rs               # Host profiler (stub)
+        iocextract.rs                # IOC extraction + DGA detection
+        threatintel.rs               # Threat intel API client (VT, AbuseIPDB, Shodan, OTX, GeoIP, WHOIS)
+        narrative.rs                 # Auto executive summary generator
+        timeline.rs                  # Timeline event builder
+        hostprofile.rs               # Host profiler (traffic analysis, service discovery)
       benches/
         parse_bench.rs               # Criterion benchmarks (stub)
     wirehunt-cli/                    # CLI binary
@@ -515,7 +524,7 @@ WireGar/
 
 **session.rs** -- Groups packets into flows and reassembles TCP streams. The `TcpState` struct tracks the handshake and maps which canonical direction is the actual TCP client (the SYN sender). This is critical because the canonical key ordering (used for HashMap lookup) does not necessarily correspond to client/server. Each direction has its own reorder buffer and expected sequence number. Mid-stream pickup is supported: if no SYN is seen, the first data packet's sequence number becomes the starting point.
 
-**protocols/mod.rs** -- Orchestrates protocol dissection. Routes each stream to the appropriate parser based on the port-guessed protocol. Falls back to heuristic detection (inspecting first bytes) for streams on non-standard ports. Returns a `DissectionResults` struct containing parsed DNS records, HTTP transactions, TLS sessions, ICMP summaries, FTP sessions, and SMTP sessions.
+**protocols/mod.rs** -- Orchestrates protocol dissection across 10 protocols. Routes each stream to the appropriate parser based on port-guessed protocol. Falls back to heuristic detection (inspecting first bytes) for streams on non-standard ports. Returns a `DissectionResults` struct containing parsed DNS records, HTTP transactions, TLS sessions, ICMP summaries, FTP sessions, SMTP sessions, SSH sessions, Telnet sessions, DHCP leases, and SMB sessions.
 
 **protocols/dns.rs** -- Full DNS message parser. Handles the recursive name compression pointer algorithm. Parses question and answer sections. Supports A, AAAA, CNAME, NS, PTR, MX, TXT, SOA, SRV, DNSKEY, and other record types.
 
@@ -525,7 +534,7 @@ WireGar/
 
 **protocols/icmp.rs** -- Parses ICMP type and code with human-readable names. Collects Echo Request/Reply payloads for covert channel and CTF exfiltration detection.
 
-**protocols/ftp.rs** -- Parses FTP control channel commands. Extracts USER/PASS credentials and RETR/STOR file transfer filenames.
+**protocols/ftp.rs** -- Parses FTP control channel commands. Extracts USER/PASS credentials, RETR/STOR file transfer filenames, PASV/EPSV/PORT data channel ports, and AUTH TLS (FTPS) detection. Tracks transfer bytes per session.
 
 **protocols/smtp.rs** -- Parses SMTP session flow. Extracts EHLO domain, MAIL FROM, RCPT TO, email subject, DATA body content. Decodes AUTH LOGIN (base64 line-by-line) and AUTH PLAIN (base64 null-delimited) credentials.
 
@@ -535,7 +544,7 @@ WireGar/
 
 **credentials.rs** -- Scans all dissected protocol data and raw stream content for credentials. Uses lazy-initialized compiled regexes for JWT, AWS keys, GitHub tokens, Slack tokens, API key patterns, private key blocks, and password form fields.
 
-**detect.rs** -- Runs all detection rules against the fully-built report. Generates findings for: CTF flags (Critical), harvested credentials (High/Medium), cleartext protocol usage (Medium), DNS anomalies like long names or large TXT records (Medium/Low), suspicious HTTP user-agents (Low), large downloads (Info), self-signed TLS certs (Medium), ICMP covert channels (Medium). All findings include MITRE ATT&CK technique IDs. Results are sorted by severity then confidence.
+**detect.rs** -- Professional-grade detection engine with 18 rule categories. Data exfiltration analysis (bytes out per external IP, asymmetric flows), C2 beaconing detection (periodic connection timing analysis), 25+ known malware JA3 fingerprints (CobaltStrike, AgentTesla, Emotet, etc.), C2 URI pattern matching, FTPS exfiltration detection, TLS anomalies (no-SNI, self-signed, deprecated versions), DNS anomalies (DGA, fast-flux, NXDOMAIN), lateral movement, port scanning, short-lived encrypted connections. All findings include MITRE ATT&CK technique IDs. Results sorted by severity then confidence.
 
 **entropy.rs** -- Computes Shannon entropy (0-8 bits per byte) on byte slices. Classifies data as encrypted (>7.5), compressed (>6.5), mixed, structured, or repetitive.
 
@@ -555,7 +564,7 @@ WireGar/
 
 **commands/ai.rs** -- AI-powered analysis subcommands. `explain` sends a compressed report summary to an LLM for narrative analysis. `solve` is CTF-focused, asking the LLM for flag-solving strategies. `decode` sends stream/artifact data for encoding identification. `generate-rule` produces Suricata/Sigma rules from findings. `suggest-queries` generates useful search queries. `login` configures the AI provider and API key.
 
-**static/index.html** -- Self-contained single-page web application (no external dependencies). Dark theme using CSS custom properties (Catppuccin Mocha palette). Features: drag-and-drop file upload, flag detection banner, findings panel, stat cards, protocol breakdown chart, search/filter bar, 6 tabbed data tables, stream viewer modal with text/hex toggle, flag highlighting via regex, JSON export.
+**static/index.html** -- Self-contained single-page web application (no external dependencies). Catppuccin Mocha dark theme. Features: auto executive summary, MITRE ATT&CK kill chain visualization, interactive Canvas-based network graph, drag-and-drop file upload, threat intel enrichment (VT/AbuseIPDB/Shodan/OTX/GeoIP), flag detection banner, findings drill-down with evidence, stat cards, protocol breakdown, top talkers chart, search/filter, dynamic protocol tabs (Flows, Streams, HTTP, DNS, TLS, FTP, SSH, Telnet, DHCP, SMB, Credentials, Artifacts, IOCs, Hosts, Network Graph, Timeline), stream viewer with Follow/Copy/Hex, flag highlighting, JSON + PDF export.
 
 ### AI Layer (wirehunt-ai)
 
@@ -609,14 +618,23 @@ WireGar/
 The `report.json` file is the primary output. It contains:
 
 - `metadata` -- WireHunt version, generation timestamp, pcap filename, SHA256, file size, packet count, capture start/end times, duration, analysis profile
+- `executive_summary` -- Auto-generated plain English narrative of the capture
 - `findings` -- Array of scored detections, each with id, title, description, severity, confidence, category, evidence references, suggested pivots, MITRE ATT&CK technique IDs
 - `flows` -- Array of network flows with 5-tuple key, timestamps, packet/byte counts per direction, detected application protocol, TCP flags, stream IDs
 - `streams` -- Array of reassembled streams with ordered segments, each segment having direction (client_to_server/server_to_client) and byte data
 - `artifacts` -- Array of extracted files with kind, name, MIME type, size, SHA256, MD5
 - `credentials` -- Array of harvested credentials with kind, username, secret, service, host, evidence
+- `iocs` -- Array of extracted IOCs with kind, value, confidence, MITRE tags
 - `dns_records` -- Array of parsed DNS queries and responses with query name, record type, response data, TTL
 - `http_transactions` -- Array of HTTP request/response pairs with method, URI, host, status code, headers, cookies, user-agent, content-type, body sizes
 - `tls_sessions` -- Array of TLS handshake metadata with version, SNI, ALPN, cipher suite, JA3/JA3S hashes
+- `ftp_sessions` -- Array of FTP sessions with user/pass, files transferred, PASV ports, AUTH TLS status
+- `ssh_sessions` -- Array of SSH sessions with client/server banners, versions, kex algorithms, ciphers
+- `telnet_sessions` -- Array of Telnet sessions with credentials, IAC negotiation options, content
+- `dhcp_leases` -- Array of DHCP messages with MAC, assigned IP, hostname, gateway, DNS servers, lease time
+- `smb_sessions` -- Array of SMB sessions with version, commands, shares, NTLM domains/users
+- `host_profiles` -- Array of per-host profiles with IP, hostnames, services, traffic stats
+- `timeline` -- Array of chronological events with timestamp, type, severity, summary
 - `statistics` -- Protocol breakdown counts, top talkers, top ports, totals, analysis duration
 
 ---
@@ -628,7 +646,7 @@ The `report.json` file is the primary output. It contains:
 - Phase 0: Project scaffold, Rust toolchain, Cargo workspace
 - Phase 1: Data models (30+ types), JSON schema generation
 - Phase 2: Pcap/pcapng ingestion, TCP reassembly, UDP grouping, flow sessionization
-- Phase 3: Protocol dissectors (DNS, HTTP, TLS/JA3, ICMP, FTP, SMTP) with heuristic detection
+- Phase 3: Protocol dissectors (DNS, HTTP, TLS/JA3, ICMP, FTP, SMTP, SSH, Telnet, DHCP, SMB) with heuristic detection
 - Phase 4: Artifact extraction, string sweep, multi-layer decode pipeline, credential harvester, entropy analysis
 - Phase 5: Detection engine with MITRE ATT&CK tagging and confidence scoring
 - Phase 5b: IOC extraction (IPs, domains, URLs, file hashes, JA3/JA3S, user-agents, DGA detection)

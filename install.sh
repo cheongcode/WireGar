@@ -4,7 +4,7 @@ set -euo pipefail
 BOLD='\033[1m'
 CYAN='\033[0;36m'
 GREEN='\033[0;32m'
-RED='\033[0;31m'
+YELLOW='\033[0;33m'
 RESET='\033[0m'
 
 echo -e "${CYAN}${BOLD}"
@@ -16,6 +16,7 @@ echo ' ╚███╔███╔╝██║██║  ██║████�
 echo '  ╚══╝╚══╝ ╚═╝╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝ ╚═════╝ ╚═╝  ╚═══╝   ╚═╝'
 echo -e "${RESET}"
 echo -e "${BOLD}WireHunt Installer${RESET}"
+echo -e "All-in-one network forensic engine"
 echo ""
 
 # Check for Rust
@@ -28,21 +29,26 @@ else
 fi
 
 # Build
-echo -e "${CYAN}[2/3]${RESET} Building WireHunt (release mode)..."
+echo -e "${CYAN}[2/3]${RESET} Building WireHunt (release mode, this may take a few minutes)..."
 cargo build --release
 
 # Install to cargo bin
-echo -e "${CYAN}[3/3]${RESET} Installing binaries..."
-cargo install --path crates/wirehunt-cli --force
-cargo install --path crates/wirehunt-tui --force
+echo -e "${CYAN}[3/3]${RESET} Installing binaries to PATH..."
+cargo install --path crates/wirehunt-cli --force 2>/dev/null
+cargo install --path crates/wirehunt-tui --force 2>/dev/null
 
 echo ""
 echo -e "${GREEN}${BOLD}WireHunt installed successfully!${RESET}"
 echo ""
-echo "  Binaries installed to: $(which wirehunt 2>/dev/null || echo '$HOME/.cargo/bin/')"
+echo -e "  ${BOLD}Quick Start:${RESET}"
+echo -e "    ${CYAN}wirehunt serve${RESET}                              # Launch web GUI at localhost:8888"
+echo -e "    ${CYAN}wirehunt analyze capture.pcap --out case/${RESET}   # CLI analysis"
+echo -e "    ${CYAN}wirehunt-tui case/${RESET}                         # Terminal UI"
 echo ""
-echo "  Usage:"
-echo "    wirehunt analyze capture.pcap --out case/ --profile ctf"
-echo "    wirehunt-tui case/"
+echo -e "  ${BOLD}Optional -- Threat Intelligence API Keys:${RESET}"
+echo -e "    ${YELLOW}export VIRUSTOTAL_API_KEY=\"your-key\"${RESET}     # https://virustotal.com"
+echo -e "    ${YELLOW}export ABUSEIPDB_API_KEY=\"your-key\"${RESET}     # https://abuseipdb.com"
+echo -e "    ${YELLOW}export SHODAN_API_KEY=\"your-key\"${RESET}        # https://shodan.io"
+echo -e "    (GeoIP and WHOIS work automatically, no keys needed)"
 echo ""
-echo "  Run 'wirehunt --help' for all commands."
+echo -e "  Run '${CYAN}wirehunt --help${RESET}' for all commands."
