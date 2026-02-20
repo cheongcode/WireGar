@@ -1,8 +1,14 @@
 # WireHunt
 
-All-in-one network forensic engine for CTF competitions, incident response, IOC detection, credential harvesting, and protocol analysis. Built from scratch in Rust for maximum performance, memory safety, and cross-platform deployment.
+<p align="center">
+  <img src="WIREHUNT.gif" alt="WireHunt" width="400"/>
+</p>
 
-WireHunt replaces the need to manually use Wireshark, tshark, NetworkMiner, and other tools. Drop a pcap file in and it does everything: reassembles TCP streams, parses protocols, extracts files, finds flags, harvests credentials, and scores findings with MITRE ATT&CK tags.
+**All-in-one network forensic engine** for CTF competitions, incident response, IOC detection, credential harvesting, and protocol analysis. Built from scratch in Rust for maximum performance, memory safety, and cross-platform deployment.
+
+WireHunt replaces the need to manually use Wireshark, tshark, NetworkMiner, and other tools. Drop any pcap or pcapng file in -- malware traffic, CTF challenges, network forensic cases, red team captures -- and WireHunt does the rest. It reassembles TCP streams, parses protocols, extracts files, finds flags, harvests credentials, detects IOCs, maps MITRE ATT&CK techniques, profiles hosts, and scores findings with confidence levels.
+
+> **Origin Story:** WireHunt started life as **WireGar**, a university final year project built 6 years ago. It has since been completely rewritten from the ground up in Rust -- zero legacy code remains. The original Python prototype could barely handle small pcaps; WireHunt now processes hundreds of megabytes in seconds with full protocol dissection, credential harvesting, IOC extraction, AI-powered analysis, and three professional interfaces (Web GUI, TUI, CLI).
 
 ```
  ██╗    ██╗██╗██████╗ ███████╗██╗  ██╗██╗   ██╗███╗   ██╗████████╗
@@ -86,14 +92,64 @@ WireHunt replaces the need to manually use Wireshark, tshark, NetworkMiner, and 
 - Detects: CTF flags, cleartext protocol usage (FTP/Telnet), DNS anomalies (long names, large TXT records), suspicious HTTP user-agents, large file downloads, self-signed TLS certificates, ICMP covert channels
 - Findings sorted by severity then confidence
 
+**IOC Extraction**
+- Automatic extraction of Indicators of Compromise from all analysis data
+- External IP addresses with flow counts
+- Domain names with DGA (Domain Generation Algorithm) detection
+- URLs with path traversal and suspicious endpoint detection
+- File hashes (SHA256) from extracted artifacts
+- JA3 and JA3S TLS fingerprints
+- User-Agent strings with tool/scanner identification (curl, wget, nikto, sqlmap, nmap)
+- MITRE ATT&CK technique tagging on all IOCs
+- Confidence scoring per IOC
+
+**Host Profiling**
+- Automatic per-host profile generation from flow data
+- Tracks bytes sent/received, flow counts, active time ranges
+- Service discovery (port/protocol/application mapping)
+- DNS-based hostname resolution
+- Sorted by traffic volume for quick identification of top talkers
+
+**Timeline Generation**
+- Chronological event timeline built from flows, findings, HTTP transactions, and credential harvests
+- Severity-colored event markers
+- Protocol and IP attribution per event
+
 **Entropy Analysis**
 - Shannon entropy calculation on all stream content
 - Classification: encrypted (>7.5), compressed (>6.5), mixed, structured, repetitive
 
-**Three Interfaces**
-- Web GUI: drag-and-drop browser dashboard at localhost:8888
-- Terminal TUI: interactive ratatui-based interface with Vim keybindings
-- CLI: scriptable command-line interface with JSON output
+**Search Index and Query DSL**
+- SQLite FTS5 full-text search across all analysis data
+- Scoped queries: `dns:evil.com`, `http:admin`, `findings:critical`
+- Free text search across streams, DNS, HTTP, credentials, artifacts, findings, TLS
+- Output as table, JSON, or CSV
+
+**Report Export**
+- Self-contained HTML report with Catppuccin dark theme and interactive tabs
+- JSON export
+- STIX 2.1 bundle export for integration with threat intelligence platforms
+
+**Live Network Capture**
+- Real-time packet capture from network interfaces (feature-gated, requires libpcap/Npcap)
+- BPF filter support, duration limits, packet count limits
+- Real-time regex pattern alerts (e.g., `--alert "flag{"`)
+- Full analysis pipeline on Ctrl+C with automatic report generation
+- Interface listing with `--list`
+
+**AI-Powered Analysis**
+- Multi-provider support: OpenAI (GPT-4o), Anthropic (Claude), Ollama (local models)
+- `ai explain`: narrative forensic analysis of capture
+- `ai solve`: CTF-focused flag-solving assistance
+- `ai decode`: encoding identification and decode chain suggestions
+- `ai generate-rule`: Suricata/Sigma rule generation from findings
+- `ai suggest-queries`: recommended search queries based on report
+- Configuration via `~/.wirehunt/config.toml` or environment variables
+
+**Three Professional Interfaces**
+- Web GUI: drag-and-drop browser dashboard at localhost:8888 with MITRE ATT&CK kill chain visualization, IOC panel, host profiles, timeline view, TLS session details, finding drill-down with evidence, top talkers chart, and 10 tabbed data sections
+- Terminal TUI: interactive ratatui-based interface with 7 tabs and Vim keybindings
+- CLI: scriptable command-line interface with JSON output for automation and pipeline integration
 
 ---
 
@@ -193,7 +249,102 @@ wirehunt ai solve <case-dir>
 wirehunt serve --port 8888
 ```
 
-Note: `hunt`, `query`, `extract`, `export`, `live`, and `ai` subcommands are defined but not yet fully implemented. The core `analyze` and `serve` commands are fully functional.
+### Search Index and Query DSL
+
+```bash
+# Analyze with index building enabled
+wirehunt analyze capture.pcap --out case/ --profile ctf --index
+
+# Free text search across all data
+wirehunt query case/ 'evil.com'
+
+# Scoped search by data type
+wirehunt query case/ 'dns:evil.com'
+wirehunt query case/ 'http:admin'
+wirehunt query case/ 'credentials:password'
+wirehunt query case/ 'findings:critical'
+
+# Output formats
+wirehunt query case/ 'flag' --format json
+wirehunt query case/ 'flag' --format csv
+```
+
+### Export Reports
+
+```bash
+# Generate standalone HTML report (self-contained, dark theme)
+wirehunt export case/ --html
+
+# Export as JSON
+wirehunt export case/ --json
+
+# Export as STIX 2.1 bundle
+wirehunt export case/ --stix
+
+# Custom output path
+wirehunt export case/ --html --output report.html
+```
+
+### Live Capture
+
+Requires the `live` feature flag and libpcap/Npcap:
+
+```bash
+# Build with live capture support
+cargo install --path crates/wirehunt-cli --features live
+
+# List available network interfaces
+wirehunt live --list
+
+# Capture on an interface with CTF profile
+wirehunt live eth0 --profile ctf
+
+# Capture with pattern alerts
+wirehunt live eth0 --alert "flag{" --alert "password"
+
+# Capture with BPF filter and duration limit
+wirehunt live eth0 --filter "tcp port 80" --duration 60 --out case/
+```
+
+### AI-Powered Analysis
+
+Requires an API key (OpenAI, Anthropic) or local Ollama:
+
+```bash
+# Configure AI provider
+wirehunt ai login
+
+# Get AI narrative of what happened in the capture
+wirehunt ai explain case/
+wirehunt ai explain case/ --allow-raw    # include stream excerpts
+
+# CTF-focused solving assistance
+wirehunt ai solve case/
+
+# AI-suggested search queries
+wirehunt ai suggest-queries case/
+
+# Generate detection rules from a finding
+wirehunt ai generate-rule case/ --from-finding first
+
+# AI-assisted decode of a stream or artifact
+wirehunt ai decode case/ --id abc123
+```
+
+Set API keys via environment variables:
+```bash
+export OPENAI_API_KEY=sk-...
+export ANTHROPIC_API_KEY=sk-ant-...
+```
+
+Or create `~/.wirehunt/config.toml`:
+```toml
+provider = "openai"
+api_key = "sk-..."
+model = "gpt-4o"
+max_tokens = 4096
+temperature = 0.3
+```
 
 ---
 
@@ -228,7 +379,7 @@ WireGar/
         crypto.rs                    # Decode pipeline (base64, hex, xor, gzip, etc.)
         credentials.rs               # Credential harvester
         entropy.rs                   # Shannon entropy analysis
-        index.rs                     # SQLite FTS5 index (stub)
+        index.rs                     # SQLite FTS5 search index + query DSL
         timeline.rs                  # Timeline builder (stub)
         hostprofile.rs               # Host profiler (stub)
       benches/
@@ -243,11 +394,11 @@ WireGar/
           analyze.rs                 # Full 8-step analysis pipeline
           serve.rs                   # Web GUI server (axum + embedded HTML)
           hunt.rs                    # Rule pack runner (stub)
-          query.rs                   # Query DSL (stub)
+          query.rs                   # Search index query with table/JSON/CSV output
           extract.rs                 # Extraction subcommand (stub)
-          export.rs                  # Export subcommand (stub)
-          live.rs                    # Live capture (stub)
-          ai.rs                      # AI subcommands (stub)
+          export.rs                  # HTML, JSON, STIX 2.1 report export
+          live.rs                    # Live capture with alerts (feature-gated)
+          ai.rs                      # AI subcommands (explain, solve, decode, rulegen, login)
       static/
         index.html                   # Embedded web GUI dashboard (single-page app)
     wirehunt-tui/                    # Interactive TUI binary
@@ -265,23 +416,23 @@ WireGar/
           credentials.rs             # Credentials table tab
           dns.rs                     # DNS records tab
           http.rs                    # HTTP transactions tab
-    wirehunt-ai/                     # AI layer (stubs, not yet implemented)
+    wirehunt-ai/                     # AI-powered analysis layer
       Cargo.toml
       src/
-        lib.rs
-        provider.rs                  # Provider abstraction (OpenAI, Anthropic, Ollama)
-        copilot.rs                   # Analyst copilot
-        decoder.rs                   # Decode assistant
-        rulegen.rs                   # Rule generator
-    wirehunt-rules/                  # Detection rules (stubs, not yet implemented)
+        lib.rs                       # Re-exports and crate root
+        provider.rs                  # Multi-provider AI client (OpenAI, Anthropic, Ollama)
+        copilot.rs                   # Analyst copilot + report summarizer
+        decoder.rs                   # AI decode assistant
+        rulegen.rs                   # AI rule generator (Suricata, Sigma)
+    wirehunt-rules/                  # Detection rules engine
       Cargo.toml
       src/
-        lib.rs
-        ctf.rs                       # CTF rule pack
-        creds.rs                     # Credential rule pack
-        ioc.rs                       # IOC rule pack
-        anomaly.rs                   # Anomaly rule pack
-        exfil.rs                     # Exfiltration rule pack
+        lib.rs                       # Module exports
+        ctf.rs                       # CTF rule pack (stub)
+        creds.rs                     # Credential rule pack (stub)
+        ioc.rs                       # IOC rule pack (stub)
+        anomaly.rs                   # Anomaly rule pack (stub)
+        exfil.rs                     # Exfiltration rule pack (stub)
   tests/
     fixtures/
       test_http.pcap                 # Test pcap with HTTP + DNS + flag
@@ -334,13 +485,33 @@ WireGar/
 
 **entropy.rs** -- Computes Shannon entropy (0-8 bits per byte) on byte slices. Classifies data as encrypted (>7.5), compressed (>6.5), mixed, structured, or repetitive.
 
+**index.rs** -- SQLite FTS5 full-text search index. Creates virtual tables for streams, DNS records, HTTP transactions, credentials, artifacts, findings, and TLS sessions. `SearchIndex::build_from_report()` populates all tables from a Report struct. `SearchIndex::query()` parses a simple DSL (free text or `table:term` scoped searches) and returns ranked results. Uses FTS5's built-in BM25 ranking.
+
 ### CLI (wirehunt-cli)
 
-**commands/analyze.rs** -- The main analysis pipeline. Runs 8 sequential steps: ingest, sessionize, dissect protocols, extract artifacts and credentials, flow summary, entropy analysis, detection rules, and report writing. Prints colored output at each step showing what was found.
+**commands/analyze.rs** -- The main analysis pipeline. Runs 8 sequential steps: ingest, sessionize, dissect protocols, extract artifacts and credentials, flow summary, entropy analysis, detection rules, and report writing. Optional step 9 builds the SQLite FTS5 search index when `--index` is passed. Prints colored output at each step showing what was found.
 
 **commands/serve.rs** -- Starts an axum web server with three endpoints: `GET /` serves the embedded HTML dashboard, `POST /api/analyze` accepts multipart file upload and runs the full analysis pipeline returning JSON, `GET /api/report` returns the last analysis result. Supports files up to 500MB. Auto-opens the browser on startup.
 
+**commands/query.rs** -- Reads the SQLite FTS5 index from a case directory and executes queries. Supports free text search (searches all tables) and scoped search (e.g., `dns:evil.com` searches only DNS records). Output formats: colored table (default), JSON, or CSV.
+
+**commands/export.rs** -- Generates reports in multiple formats. `--html` produces a self-contained single-file HTML report with the Catppuccin Mocha dark theme, tabbed data sections, severity badges, MITRE ATT&CK tags, protocol breakdown, search/filter, and embedded JSON for client-side interaction. `--json` copies the report. `--stix` generates a STIX 2.1 bundle with indicators for findings and observed-data for credentials.
+
+**commands/live.rs** -- Live packet capture from a network interface using the `pcap` crate (feature-gated behind `--features live`). Opens a promiscuous capture, applies optional BPF filter, parses packets through the existing ingest/session/dissect pipeline, and alerts in real-time when user-specified regex patterns match. On Ctrl+C, finalizes analysis and writes a full report. Lists available interfaces with `--list`.
+
+**commands/ai.rs** -- AI-powered analysis subcommands. `explain` sends a compressed report summary to an LLM for narrative analysis. `solve` is CTF-focused, asking the LLM for flag-solving strategies. `decode` sends stream/artifact data for encoding identification. `generate-rule` produces Suricata/Sigma rules from findings. `suggest-queries` generates useful search queries. `login` configures the AI provider and API key.
+
 **static/index.html** -- Self-contained single-page web application (no external dependencies). Dark theme using CSS custom properties (Catppuccin Mocha palette). Features: drag-and-drop file upload, flag detection banner, findings panel, stat cards, protocol breakdown chart, search/filter bar, 6 tabbed data tables, stream viewer modal with text/hex toggle, flag highlighting via regex, JSON export.
+
+### AI Layer (wirehunt-ai)
+
+**provider.rs** -- Multi-provider AI client abstraction. Supports OpenAI (GPT-4o), Anthropic (Claude), and Ollama (local models). Unified `chat()` async API that routes to the correct provider's API endpoint. Configuration loaded from `~/.wirehunt/config.toml` with environment variable overrides (`OPENAI_API_KEY`, `ANTHROPIC_API_KEY`, `OLLAMA_URL`).
+
+**copilot.rs** -- Analyst copilot with three modes: `explain` (narrative forensic analysis), `solve` (CTF flag solving), and `suggest_queries` (search recommendations). Includes `summarize_report()` which compresses a full Report into an LLM-safe text summary under token limits, including metadata, findings, credentials, DNS/HTTP/TLS highlights, and optionally raw stream excerpts.
+
+**decoder.rs** -- AI decode assistant. Sends encoded data to an LLM with context about its source, asking for encoding identification and suggesting WireHunt decode chains.
+
+**rulegen.rs** -- AI rule generator. Takes a finding and asks the LLM to produce detection rules in Suricata, Sigma, and WireHunt query formats.
 
 ### TUI (wirehunt-tui)
 
@@ -406,17 +577,20 @@ The `report.json` file is the primary output. It contains:
 - Phase 3: Protocol dissectors (DNS, HTTP, TLS/JA3, ICMP, FTP, SMTP) with heuristic detection
 - Phase 4: Artifact extraction, string sweep, multi-layer decode pipeline, credential harvester, entropy analysis
 - Phase 5: Detection engine with MITRE ATT&CK tagging and confidence scoring
+- Phase 5b: IOC extraction (IPs, domains, URLs, file hashes, JA3/JA3S, user-agents, DGA detection)
+- Phase 5c: Host profiling (per-host traffic analysis, service discovery, hostname resolution)
+- Phase 5d: Timeline generation (chronological events from flows, findings, HTTP, credentials)
+- Phase 6: SQLite FTS5 search index and query DSL (`wirehunt query` command)
 - Phase 7: Interactive ratatui TUI with 7 tabs and Vim keybindings
-- Web GUI: Drag-and-drop browser dashboard with axum server
+- Phase 8: Standalone HTML report export, JSON export, STIX 2.1 bundle export
+- Phase 9: Live network capture mode with real-time alerts (feature-gated, requires libpcap/Npcap)
+- Phase 10: AI-powered analysis (OpenAI, Anthropic, Ollama) with explain, solve, decode, rule generation, query suggestions
+- Web GUI: Professional drag-and-drop dashboard with MITRE ATT&CK kill chain, IOC panel, host profiles, timeline, TLS details, finding drill-down, top talkers, 10 tabbed data sections
 - Install scripts for Windows and Linux/macOS
-- 33 unit tests passing across the entire workspace
+- 37 unit tests passing across the entire workspace
 
-### Remaining (Planned for Next Phase)
+### Remaining (Future)
 
-- Phase 6: SQLite FTS5 search index and query DSL for the `wirehunt query` command
-- Phase 8: Standalone HTML report export
-- Phase 9: Live network capture mode
-- Phase 10: AI layer (provider abstraction for OpenAI/Anthropic/Ollama, analyst copilot, decode assistant, rule generator)
 - ICS/SCADA protocol support (Modbus, DNP3, S7comm, EtherNet/IP, OPC UA)
 - YARA-X rule scanning for IOC detection
 - Suricata rule compatibility
@@ -427,7 +601,7 @@ The `report.json` file is the primary output. It contains:
 ## Development
 
 ```bash
-# Run all tests (33 tests across 5 crates)
+# Run all tests (37 tests across 5 crates)
 cargo test
 
 # Run with debug logging
@@ -435,6 +609,9 @@ RUST_LOG=wirehunt=debug cargo run --bin wirehunt -- analyze test.pcap --out case
 
 # Build optimized release binaries
 cargo build --release
+
+# Build with live capture support (requires libpcap/Npcap)
+cargo build --release --features live
 
 # Run benchmarks
 cargo bench --package wirehunt-core
@@ -446,7 +623,7 @@ cargo bench --package wirehunt-core
 - `etherparse` 0.16 -- Zero-allocation packet header parsing
 - `nom` 7 -- Parser combinators for protocol dissection
 - `tls-parser` 0.12 -- TLS message parsing
-- `rusqlite` 0.32 -- SQLite with bundled library
+- `rusqlite` 0.32 -- SQLite with bundled library and FTS5
 - `serde` + `serde_json` -- Serialization
 - `regex` -- Pattern matching for flag/credential detection
 - `sha2` + `md-5` -- Cryptographic hashing
@@ -454,6 +631,9 @@ cargo bench --package wirehunt-core
 - `clap` 4 -- CLI framework with derive macros
 - `axum` 0.8 -- Web server for GUI
 - `ratatui` 0.29 + `crossterm` 0.28 -- Terminal UI
+- `reqwest` 0.12 -- HTTP client for AI APIs
+- `toml` 0.8 -- Configuration file parsing
+- `pcap` 2 -- Live packet capture (optional, feature-gated)
 - `chrono` -- Timestamps
 - `uuid` -- Unique identifiers
 - `tracing` -- Structured logging

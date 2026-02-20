@@ -187,5 +187,29 @@ fn run_analysis(path: &std::path::Path, filename: &str) -> Result<Report, String
     report.statistics.total_findings = findings.len() as u64;
     report.findings = findings;
 
+    report.iocs = wirehunt_core::iocextract::extract_iocs(&report);
+    report.timeline = wirehunt_core::timeline::TimelineBuilder::new().build(&report);
+    report.host_profiles = wirehunt_core::hostprofile::HostProfiler::new().build(&report);
+
+    let mut talkers: std::collections::HashMap<std::net::IpAddr, u64> = std::collections::HashMap::new();
+    for flow in &report.flows {
+        *talkers.entry(flow.key.src_ip).or_insert(0) += flow.fwd_bytes;
+        *talkers.entry(flow.key.dst_ip).or_insert(0) += flow.rev_bytes;
+    }
+    let mut sorted_talkers: Vec<_> = talkers.into_iter().collect();
+    sorted_talkers.sort_by(|a, b| b.1.cmp(&a.1));
+    sorted_talkers.truncate(20);
+    report.statistics.top_talkers = sorted_talkers;
+
+    let mut ports: std::collections::HashMap<u16, u64> = std::collections::HashMap::new();
+    for flow in &report.flows {
+        let port = std::cmp::min(flow.key.src_port, flow.key.dst_port);
+        if port > 0 { *ports.entry(port).or_insert(0) += 1; }
+    }
+    let mut sorted_ports: Vec<_> = ports.into_iter().collect();
+    sorted_ports.sort_by(|a, b| b.1.cmp(&a.1));
+    sorted_ports.truncate(20);
+    report.statistics.top_ports = sorted_ports;
+
     Ok(report)
 }

@@ -439,10 +439,33 @@ pub fn run(args: AnalyzeArgs) -> Result<()> {
     report.statistics.total_findings = findings.len() as u64;
     report.findings = findings;
 
+    // 7b. IOC extraction, timeline, host profiling
+    report.iocs = wirehunt_core::iocextract::extract_iocs(&report);
+    report.timeline = wirehunt_core::timeline::TimelineBuilder::new().build(&report);
+    report.host_profiles = wirehunt_core::hostprofile::HostProfiler::new().build(&report);
+
+    if !report.iocs.is_empty() {
+        println!(
+            "        IOCs: {}",
+            console::style(report.iocs.len()).green(),
+        );
+    }
+    if !report.host_profiles.is_empty() {
+        println!(
+            "        host profiles: {}",
+            console::style(report.host_profiles.len()).green(),
+        );
+    }
+    println!(
+        "        timeline: {} events",
+        console::style(report.timeline.len()).green(),
+    );
+
     // 8. Write report
+    let step_label = if args.index { "[8/9]" } else { "[8/8]" };
     println!(
         "  {}",
-        console::style("[8/8] writing report").cyan().bold(),
+        console::style(format!("{} writing report", step_label)).cyan().bold(),
     );
 
     let elapsed = started.elapsed();
@@ -455,6 +478,26 @@ pub fn run(args: AnalyzeArgs) -> Result<()> {
         .with_context(|| format!("failed to write {}", report_path.display()))?;
 
     let report_size = report_json.len();
+
+    // 9. Build search index (optional)
+    if args.index {
+        println!(
+            "  {}",
+            console::style("[9/9] building search index").cyan().bold(),
+        );
+
+        let index_path = args.out.join("index.db");
+        let search_index = wirehunt_core::index::SearchIndex::create(&index_path)
+            .context("failed to create search index")?;
+        search_index
+            .build_from_report(&report)
+            .context("failed to build search index")?;
+
+        println!(
+            "        index -> {}",
+            console::style(index_path.display()).green(),
+        );
+    }
 
     println!();
     println!(

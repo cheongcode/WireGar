@@ -22,4 +22,11 @@ tracing.workspace = true
 tokio.workspace = true
 
 # HTTP client for AI APIs
-reqwest = { version = "0.12", features = ["json", "rustls-tls"], default-features = false }
+reqwest = { version = "0.12", features = ["json", "rustls-tls", "stream"], default-features = false }
+
+# Config
+toml = "0.8"
+dirs = "6"
+
+# Core models
+wirehunt-core = { path = "../wirehunt-core" }

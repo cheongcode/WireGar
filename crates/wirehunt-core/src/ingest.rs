@@ -515,6 +515,134 @@ fn pcap_ts_to_datetime(secs: i64, usecs: u32) -> DateTime<Utc> {
     DateTime::from_timestamp(secs, usecs * 1000).unwrap_or_default()
 }
 
+/// Parse a raw Ethernet frame into a ParsedPacket (for live capture use).
+/// `ts_sec` and `ts_usec` are seconds and microseconds since epoch.
+pub fn parse_raw_ethernet_packet(
+    data: &[u8],
+    index: u64,
+    ts_sec: i64,
+    ts_usec: u32,
+) -> Option<ParsedPacket> {
+    if data.len() < 14 {
+        return None;
+    }
+
+    let timestamp = pcap_ts_to_datetime(ts_sec, ts_usec);
+    let raw = data.to_vec();
+
+    let dst_mac: [u8; 6] = data[0..6].try_into().ok()?;
+    let src_mac: [u8; 6] = data[6..12].try_into().ok()?;
+    let mut ethertype = u16::from_be_bytes([data[12], data[13]]);
+    let mut offset = 14usize;
+    let mut vlan_id: Option<u16> = None;
+
+    if ethertype == 0x8100 {
+        if data.len() < 18 {
+            return None;
+        }
+        vlan_id = Some(u16::from_be_bytes([data[14], data[15]]) & 0x0FFF);
+        ethertype = u16::from_be_bytes([data[16], data[17]]);
+        offset = 18;
+    }
+
+    if ethertype != 0x0800 && ethertype != 0x86DD {
+        return None;
+    }
+
+    use etherparse::{NetHeaders, PacketHeaders, TransportHeader};
+    let headers = PacketHeaders::from_ip_slice(&data[offset..]).ok()?;
+
+    let (src_ip, dst_ip, ip_ttl, ip_id) = match headers.net {
+        Some(NetHeaders::Ipv4(ref h, _)) => (
+            IpAddr::V4(Ipv4Addr::from(h.source)),
+            IpAddr::V4(Ipv4Addr::from(h.destination)),
+            h.time_to_live,
+            Some(h.identification),
+        ),
+        Some(NetHeaders::Ipv6(ref h, _)) => (
+            IpAddr::V6(Ipv6Addr::from(h.source)),
+            IpAddr::V6(Ipv6Addr::from(h.destination)),
+            h.hop_limit,
+            None,
+        ),
+        None => return None,
+    };
+
+    let payload_bytes = headers.payload.slice().to_vec();
+
+    let (protocol, src_port, dst_port, tcp_flags, tcp_seq, tcp_ack, tcp_window) =
+        match headers.transport {
+            Some(TransportHeader::Tcp(ref tcp)) => {
+                let flags = TcpFlags {
+                    fin: tcp.fin,
+                    syn: tcp.syn,
+                    rst: tcp.rst,
+                    psh: tcp.psh,
+                    ack: tcp.ack,
+                    urg: tcp.urg,
+                    ece: tcp.ece,
+                    cwr: tcp.cwr,
+                };
+                (
+                    TransportProtocol::Tcp,
+                    tcp.source_port,
+                    tcp.destination_port,
+                    Some(flags),
+                    Some(tcp.sequence_number),
+                    Some(tcp.acknowledgment_number),
+                    Some(tcp.window_size),
+                )
+            }
+            Some(TransportHeader::Udp(ref udp)) => (
+                TransportProtocol::Udp,
+                udp.source_port,
+                udp.destination_port,
+                None,
+                None,
+                None,
+                None,
+            ),
+            Some(TransportHeader::Icmpv4(_)) | Some(TransportHeader::Icmpv6(_)) => (
+                TransportProtocol::Icmp,
+                0,
+                0,
+                None,
+                None,
+                None,
+                None,
+            ),
+            None => return None,
+        };
+
+    let flow_key = FlowKey {
+        src_ip,
+        dst_ip,
+        src_port,
+        dst_port,
+        protocol,
+    };
+
+    Some(ParsedPacket {
+        index,
+        timestamp,
+        pcap_offset: 0,
+        caplen: data.len() as u32,
+        origlen: data.len() as u32,
+        flow_key,
+        tcp_flags,
+        tcp_seq,
+        tcp_ack,
+        tcp_window,
+        payload: payload_bytes,
+        raw_packet: raw,
+        src_mac: Some(src_mac),
+        dst_mac: Some(dst_mac),
+        vlan_id,
+        ip_ttl,
+        ip_id,
+    })
+}
+
 fn compute_file_sha256(path: &Path) -> Result<String> {
     let mut file = File::open(path)?;
     let mut hasher = Sha256::new();

@@ -6,129 +6,154 @@
 <title>WireHunt - Network Forensic Engine</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
-:root{--bg:#1e1e2e;--surface:#313244;--overlay:#45475a;--text:#cdd6f4;--subtext:#a6adc8;--accent:#89b4fa;--green:#a6e3a1;--red:#f38ba8;--yellow:#f9e2af;--mauve:#cba6f7;--teal:#94e2d5;--pink:#f5c2e7;--peach:#fab387;--border:#585b70;--card:#181825;--client:#89b4fa;--server:#a6e3a1}
+:root{--bg:#1e1e2e;--surface:#313244;--overlay:#45475a;--text:#cdd6f4;--subtext:#a6adc8;--accent:#89b4fa;--green:#a6e3a1;--red:#f38ba8;--yellow:#f9e2af;--mauve:#cba6f7;--teal:#94e2d5;--pink:#f5c2e7;--peach:#fab387;--border:#585b70;--card:#181825;--client:#89b4fa;--server:#a6e3a1;--crust:#11111b}
 body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
-
-.header{background:var(--card);border-bottom:1px solid var(--border);padding:12px 24px;display:flex;align-items:center;gap:16px;position:sticky;top:0;z-index:100}
-.logo{font-size:22px;font-weight:800;letter-spacing:-0.5px}
-.logo span:first-child{color:var(--accent)}
+.header{background:var(--crust);border-bottom:1px solid var(--border);padding:10px 24px;display:flex;align-items:center;gap:16px;position:sticky;top:0;z-index:100}
+.logo{font-size:22px;font-weight:800;letter-spacing:-0.5px}.logo span:first-child{color:var(--accent)}
 .version{color:var(--subtext);font-size:12px}
-.header-right{margin-left:auto;display:flex;gap:12px;align-items:center}
-.btn{padding:7px 16px;border-radius:6px;border:1px solid var(--border);background:var(--surface);color:var(--text);cursor:pointer;font-size:13px;transition:all .15s;font-family:inherit}
+.header-right{margin-left:auto;display:flex;gap:10px;align-items:center}
+.btn{padding:6px 14px;border-radius:6px;border:1px solid var(--border);background:var(--surface);color:var(--text);cursor:pointer;font-size:12px;transition:all .15s;font-family:inherit}
 .btn:hover{border-color:var(--accent);color:var(--accent)}
-.btn-primary{background:var(--accent);color:var(--bg);border-color:var(--accent);font-weight:600}
+.btn-primary{background:var(--accent);color:var(--crust);border-color:var(--accent);font-weight:600}
 .btn-primary:hover{opacity:.85}
-
-.container{max-width:1440px;margin:0 auto;padding:20px}
-
-/* Drop zone */
+.container{max-width:1600px;margin:0 auto;padding:16px 20px}
 .dropzone{border:2px dashed var(--border);border-radius:16px;padding:64px 40px;text-align:center;transition:all .2s;cursor:pointer;background:var(--card)}
 .dropzone:hover,.dropzone.active{border-color:var(--accent);background:rgba(137,180,250,.05)}
-.dropzone h2{font-size:20px;margin-bottom:6px}
-.dropzone p{color:var(--subtext);font-size:13px}
-.dropzone .icon{font-size:40px;margin-bottom:12px;opacity:.6}
-.dropzone input{display:none}
-
+.dropzone h2{font-size:20px;margin-bottom:6px}.dropzone p{color:var(--subtext);font-size:13px}
+.dropzone .icon{font-size:40px;margin-bottom:12px;opacity:.6}.dropzone input{display:none}
 .loading{text-align:center;padding:48px;display:none}
 .spinner{width:40px;height:40px;border:3px solid var(--border);border-top:3px solid var(--accent);border-radius:50%;animation:spin .7s linear infinite;margin:0 auto 12px}
 @keyframes spin{to{transform:rotate(360deg)}}
-
-/* Dashboard */
 .dashboard{display:none}
-
-/* Flag banner */
-.flag-banner{background:linear-gradient(135deg,rgba(243,139,168,.12),rgba(203,166,247,.12));border:1px solid var(--red);border-radius:12px;padding:16px 20px;margin-bottom:20px;animation:pulse 2s ease-in-out infinite}
+.flag-banner{background:linear-gradient(135deg,rgba(243,139,168,.12),rgba(203,166,247,.12));border:1px solid var(--red);border-radius:10px;padding:14px 18px;margin-bottom:16px;animation:pulse 2s ease-in-out infinite}
 @keyframes pulse{0%,100%{border-color:var(--red)}50%{border-color:var(--mauve)}}
-.flag-banner h3{color:var(--red);font-size:15px;margin-bottom:8px;display:flex;align-items:center;gap:8px}
-.flag-value{font-family:'Cascadia Code','Fira Code',monospace;background:rgba(243,139,168,.1);color:var(--red);padding:4px 10px;border-radius:4px;font-size:14px;font-weight:700;display:inline-block;margin:3px 4px 3px 0}
+.flag-banner h3{color:var(--red);font-size:14px;margin-bottom:6px;display:flex;align-items:center;gap:8px}
+.flag-value{font-family:'Cascadia Code','Fira Code',monospace;background:rgba(243,139,168,.1);color:var(--red);padding:3px 8px;border-radius:4px;font-size:13px;font-weight:700;display:inline-block;margin:2px 4px 2px 0}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:16px}
+.grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin-bottom:16px}
+@media(max-width:900px){.grid-2,.grid-3{grid-template-columns:1fr}}
+.card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:14px 16px}
+.card h3{font-size:12px;color:var(--subtext);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px;display:flex;align-items:center;gap:8px}
+.card h3 .cnt{color:var(--accent);font-weight:700}
 
-/* Findings alert */
-.findings-box{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px 20px;margin-bottom:20px}
-.findings-box h3{color:var(--peach);font-size:14px;margin-bottom:10px}
-.finding-row{display:flex;align-items:center;gap:10px;padding:6px 0;border-bottom:1px solid rgba(88,91,112,.3);font-size:13px}
+/* Findings */
+.finding-row{display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid rgba(88,91,112,.2);font-size:12px;cursor:pointer;transition:background .1s}
+.finding-row:hover{background:rgba(137,180,250,.03);border-radius:4px}
 .finding-row:last-child{border-bottom:none}
-.sev{font-size:11px;font-weight:700;padding:2px 8px;border-radius:3px;min-width:60px;text-align:center}
-.sev-Critical{background:rgba(243,139,168,.2);color:var(--red)}
-.sev-High{background:rgba(245,194,231,.15);color:var(--pink)}
-.sev-Medium{background:rgba(249,226,175,.15);color:var(--yellow)}
-.sev-Low{background:rgba(148,226,213,.15);color:var(--teal)}
-.sev-Info{background:rgba(166,173,200,.1);color:var(--subtext)}
-.mitre{font-size:10px;color:var(--mauve);background:rgba(203,166,247,.1);padding:1px 6px;border-radius:3px}
+.sev{font-size:10px;font-weight:700;padding:2px 7px;border-radius:3px;min-width:55px;text-align:center;text-transform:uppercase}
+.sev-critical{background:rgba(243,139,168,.2);color:var(--red)}.sev-high{background:rgba(250,179,135,.15);color:var(--peach)}
+.sev-medium{background:rgba(249,226,175,.15);color:var(--yellow)}.sev-low{background:rgba(148,226,213,.15);color:var(--teal)}
+.sev-info{background:rgba(166,173,200,.1);color:var(--subtext)}
+.mitre{font-size:9px;color:var(--mauve);background:rgba(203,166,247,.1);padding:1px 5px;border-radius:3px}
 
-/* File info */
-.file-info{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px 20px;margin-bottom:20px}
-.fi .lbl{color:var(--subtext);font-size:10px;text-transform:uppercase;letter-spacing:.5px}
-.fi .val{font-weight:600;font-size:13px;word-break:break-all}
-.fi .hash{font-family:monospace;font-size:10px;color:var(--accent)}
+/* File info bar */
+.file-bar{display:flex;flex-wrap:wrap;gap:16px;background:var(--card);border:1px solid var(--border);border-radius:10px;padding:12px 16px;margin-bottom:14px;font-size:12px}
+.file-bar .lbl{color:var(--subtext);font-size:10px;text-transform:uppercase;letter-spacing:.4px}
+.file-bar .val{font-weight:600;word-break:break-all}.file-bar .hash{font-family:monospace;font-size:10px;color:var(--accent)}
 
 /* Stats */
-.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-bottom:20px}
-.stat{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:16px;text-align:center}
-.stat .v{font-size:28px;font-weight:800}
-.stat .l{color:var(--subtext);font-size:11px;text-transform:uppercase;letter-spacing:.5px;margin-top:2px}
-.stat.a .v{color:var(--accent)}.stat.g .v{color:var(--green)}.stat.y .v{color:var(--yellow)}.stat.r .v{color:var(--red)}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:10px;margin-bottom:16px}
+.stat{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:12px 10px;text-align:center}
+.stat .v{font-size:24px;font-weight:800}.stat .l{color:var(--subtext);font-size:10px;text-transform:uppercase;letter-spacing:.5px;margin-top:2px}
+.stat.a .v{color:var(--accent)}.stat.g .v{color:var(--green)}.stat.y .v{color:var(--yellow)}.stat.r .v{color:var(--red)}.stat.m .v{color:var(--mauve)}.stat.t .v{color:var(--teal)}
 
 /* Protocol chart */
-.proto-chart{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px 20px;margin-bottom:20px}
-.proto-chart h3{font-size:13px;color:var(--subtext);margin-bottom:10px}
-.proto-bar{display:flex;align-items:center;gap:10px;padding:4px 0;font-size:13px}
-.proto-bar .name{min-width:80px;color:var(--accent);font-weight:600}
-.proto-bar .bar{flex:1;height:20px;background:var(--surface);border-radius:4px;overflow:hidden}
+.proto-bar{display:flex;align-items:center;gap:8px;padding:3px 0;font-size:12px}
+.proto-bar .name{min-width:70px;color:var(--accent);font-weight:600;font-size:12px}
+.proto-bar .bar{flex:1;height:18px;background:var(--surface);border-radius:4px;overflow:hidden}
 .proto-bar .fill{height:100%;border-radius:4px;transition:width .5s}
-.proto-bar .count{min-width:60px;text-align:right;color:var(--subtext);font-size:12px}
+.proto-bar .count{min-width:70px;text-align:right;color:var(--subtext);font-size:11px}
+
+/* Top talkers */
+.talker-row{display:flex;align-items:center;gap:8px;padding:4px 0;font-size:12px;border-bottom:1px solid rgba(88,91,112,.15)}
+.talker-row .ip{font-family:monospace;font-size:11px;color:var(--accent);min-width:130px}
+.talker-row .bytes{color:var(--subtext);min-width:70px;text-align:right}
+.talker-row .bar{flex:1;height:12px;background:var(--surface);border-radius:3px;overflow:hidden}
+.talker-row .fill{height:100%;border-radius:3px}
+
+/* MITRE ATT&CK kill chain */
+.mitre-chain{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px}
+.mitre-phase{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:8px 10px;min-width:100px;flex:1}
+.mitre-phase .phase-name{font-size:9px;text-transform:uppercase;letter-spacing:.5px;color:var(--subtext);margin-bottom:4px}
+.mitre-phase .phase-tags{display:flex;flex-wrap:wrap;gap:3px}
+.mitre-tag{font-size:9px;padding:2px 5px;border-radius:3px;background:rgba(203,166,247,.12);color:var(--mauve);font-weight:600}
+.mitre-phase.active{border-color:var(--mauve);background:rgba(203,166,247,.05)}
+
+/* IOC table styles */
+.ioc-kind{font-size:10px;font-weight:600;padding:2px 6px;border-radius:3px;text-transform:uppercase}
+.ioc-ip{background:rgba(137,180,250,.12);color:var(--accent)}.ioc-domain{background:rgba(166,227,161,.12);color:var(--green)}
+.ioc-url{background:rgba(249,226,175,.12);color:var(--yellow)}.ioc-hash{background:rgba(250,179,135,.12);color:var(--peach)}
+.ioc-ja3{background:rgba(203,166,247,.12);color:var(--mauve)}.ioc-ua{background:rgba(148,226,213,.12);color:var(--teal)}
+.conf-bar{width:50px;height:8px;background:var(--surface);border-radius:4px;display:inline-block;vertical-align:middle;margin-right:4px}
+.conf-fill{height:100%;border-radius:4px}
 
 /* Search */
-.search-bar{margin-bottom:16px}
-.search-bar input{width:100%;padding:10px 16px;background:var(--card);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;font-family:inherit;outline:none;transition:border .15s}
-.search-bar input:focus{border-color:var(--accent)}
-.search-bar input::placeholder{color:var(--overlay)}
+.search-bar{margin-bottom:12px}
+.search-bar input{width:100%;padding:9px 14px;background:var(--card);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;font-family:inherit;outline:none;transition:border .15s}
+.search-bar input:focus{border-color:var(--accent)}.search-bar input::placeholder{color:var(--overlay)}
 
 /* Tabs */
-.tabs{display:flex;gap:2px;border-bottom:1px solid var(--border);margin-bottom:16px;overflow-x:auto}
-.tab{padding:9px 18px;cursor:pointer;color:var(--subtext);border-bottom:2px solid transparent;transition:all .12s;font-size:13px;font-weight:500;white-space:nowrap}
+.tabs{display:flex;gap:2px;border-bottom:1px solid var(--border);margin-bottom:14px;overflow-x:auto}
+.tab{padding:8px 14px;cursor:pointer;color:var(--subtext);border-bottom:2px solid transparent;transition:all .12s;font-size:12px;font-weight:500;white-space:nowrap}
 .tab:hover{color:var(--text)}.tab.active{color:var(--accent);border-bottom-color:var(--accent)}
-.tab .cnt{font-size:11px;color:var(--overlay);margin-left:4px}
+.tab .cnt{font-size:10px;color:var(--overlay);margin-left:4px}
 
 /* Tables */
 .panel{background:var(--card);border:1px solid var(--border);border-radius:10px;overflow:hidden;display:none}
 .panel.active{display:block}
-table{width:100%;border-collapse:collapse;font-size:12px}
-th{text-align:left;padding:8px 14px;color:var(--subtext);font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.5px;background:var(--surface);position:sticky;top:0}
-td{padding:8px 14px;border-top:1px solid rgba(88,91,112,.3)}
+table{width:100%;border-collapse:collapse;font-size:11px}
+th{text-align:left;padding:7px 12px;color:var(--subtext);font-weight:600;font-size:10px;text-transform:uppercase;letter-spacing:.5px;background:var(--surface);position:sticky;top:0}
+td{padding:6px 12px;border-top:1px solid rgba(88,91,112,.2)}
 tr:hover td{background:rgba(137,180,250,.03)}
-.proto-badge{font-weight:700;font-size:11px;padding:2px 7px;border-radius:3px;display:inline-block}
-.pb-tcp{background:rgba(137,180,250,.15);color:var(--accent)}
-.pb-udp{background:rgba(166,227,161,.15);color:var(--green)}
-.pb-icmp{background:rgba(249,226,175,.15);color:var(--yellow)}
+.proto-badge{font-weight:700;font-size:10px;padding:2px 6px;border-radius:3px;display:inline-block}
+.pb-tcp{background:rgba(137,180,250,.15);color:var(--accent)}.pb-udp{background:rgba(166,227,161,.15);color:var(--green)}.pb-icmp{background:rgba(249,226,175,.15);color:var(--yellow)}
 .m-GET{color:var(--green);font-weight:700}.m-POST{color:var(--yellow);font-weight:700}.m-PUT{color:var(--accent);font-weight:700}.m-DELETE{color:var(--red);font-weight:700}
-.status{font-weight:700;font-size:11px;padding:1px 6px;border-radius:3px}
+.status{font-weight:700;font-size:10px;padding:1px 5px;border-radius:3px}
 .s2{background:rgba(166,227,161,.15);color:var(--green)}.s3{background:rgba(249,226,175,.15);color:var(--yellow)}.s4{background:rgba(250,179,135,.15);color:var(--peach)}.s5{background:rgba(243,139,168,.15);color:var(--red)}
-.dir{font-size:11px;font-weight:600;padding:1px 6px;border-radius:3px}
+.dir{font-size:10px;font-weight:600;padding:1px 5px;border-radius:3px}
 .dir-q{background:rgba(137,180,250,.12);color:var(--accent)}.dir-r{background:rgba(166,227,161,.12);color:var(--green)}
-.cred-secret{font-family:'Cascadia Code',monospace;color:var(--red);font-size:11px;background:rgba(243,139,168,.06);padding:2px 5px;border-radius:3px;word-break:break-all}
-.mono{font-family:'Cascadia Code','Fira Code',monospace;font-size:11px}
-.empty{padding:32px;text-align:center;color:var(--overlay);font-size:13px}
+.cred-secret{font-family:'Cascadia Code',monospace;color:var(--red);font-size:10px;background:rgba(243,139,168,.06);padding:2px 4px;border-radius:3px;word-break:break-all}
+.mono{font-family:'Cascadia Code','Fira Code',monospace;font-size:10px}
+.empty{padding:24px;text-align:center;color:var(--overlay);font-size:12px}
 .flag-highlight{background:rgba(243,139,168,.15);color:var(--red);font-weight:700;padding:0 2px;border-radius:2px}
 
-/* Stream detail modal */
-.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:200;display:none;align-items:center;justify-content:center}
+/* Host profile cards */
+.host-card{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:10px 12px;margin-bottom:8px;font-size:11px}
+.host-card .ip{font-family:monospace;color:var(--accent);font-weight:700;font-size:13px}
+.host-card .hostnames{color:var(--green);font-size:10px}
+.host-card .svc{display:inline-block;font-size:9px;padding:1px 5px;border-radius:3px;background:rgba(137,180,250,.1);color:var(--accent);margin:1px 2px}
+.host-meta{display:flex;gap:12px;margin-top:4px;color:var(--subtext);font-size:10px}
+
+/* Timeline */
+.tl-event{display:flex;align-items:flex-start;gap:10px;padding:4px 0;border-left:2px solid var(--border);margin-left:8px;padding-left:12px;font-size:11px}
+.tl-event:hover{background:rgba(137,180,250,.02)}
+.tl-dot{width:8px;height:8px;border-radius:50%;margin-top:4px;flex-shrink:0}
+.tl-dot.critical{background:var(--red)}.tl-dot.high{background:var(--peach)}.tl-dot.medium{background:var(--yellow)}.tl-dot.low{background:var(--teal)}.tl-dot.info{background:var(--surface)}
+.tl-time{color:var(--subtext);font-size:10px;min-width:75px;font-family:monospace}
+.tl-type{color:var(--mauve);font-size:9px;text-transform:uppercase;min-width:80px}
+
+/* Modal */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:200;display:none;align-items:center;justify-content:center}
 .modal-overlay.open{display:flex}
-.modal{background:var(--bg);border:1px solid var(--border);border-radius:12px;width:90%;max-width:1000px;max-height:85vh;overflow:hidden;display:flex;flex-direction:column}
-.modal-header{padding:14px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
-.modal-header h3{color:var(--accent);font-size:15px}
-.modal-body{padding:16px 20px;overflow-y:auto;flex:1}
-.seg{margin-bottom:12px}
-.seg-header{font-size:12px;font-weight:600;margin-bottom:4px;display:flex;align-items:center;gap:8px}
+.modal{background:var(--bg);border:1px solid var(--border);border-radius:12px;width:92%;max-width:1100px;max-height:85vh;overflow:hidden;display:flex;flex-direction:column}
+.modal-header{padding:12px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.modal-header h3{color:var(--accent);font-size:14px}
+.modal-body{padding:14px 18px;overflow-y:auto;flex:1}
+.seg{margin-bottom:10px}
+.seg-header{font-size:11px;font-weight:600;margin-bottom:4px;display:flex;align-items:center;gap:8px}
 .seg-header .dir-client{color:var(--client)}.seg-header .dir-server{color:var(--server)}
-.seg-content{font-family:'Cascadia Code',monospace;font-size:12px;line-height:1.5;padding:10px 14px;background:var(--card);border-radius:6px;border:1px solid var(--border);white-space:pre-wrap;word-break:break-all;max-height:300px;overflow-y:auto}
+.seg-content{font-family:'Cascadia Code',monospace;font-size:11px;line-height:1.5;padding:8px 12px;background:var(--card);border-radius:6px;border:1px solid var(--border);white-space:pre-wrap;word-break:break-all;max-height:250px;overflow-y:auto}
 .seg-content.client{border-left:3px solid var(--client)}.seg-content.server{border-left:3px solid var(--server)}
-.hex-view{font-family:'Cascadia Code',monospace;font-size:11px;line-height:1.4;color:var(--subtext)}
-.toggle-hex{font-size:11px;padding:3px 10px;border-radius:4px;border:1px solid var(--border);background:var(--surface);color:var(--text);cursor:pointer}
+.toggle-hex{font-size:10px;padding:3px 8px;border-radius:4px;border:1px solid var(--border);background:var(--surface);color:var(--text);cursor:pointer}
 .toggle-hex.active{background:var(--accent);color:var(--bg);border-color:var(--accent)}
+
+/* Finding detail modal */
+.detail-grid{display:grid;grid-template-columns:auto 1fr;gap:6px 12px;font-size:12px;margin-bottom:12px}
+.detail-grid .lbl{color:var(--subtext);text-transform:uppercase;font-size:10px;letter-spacing:.3px}
+.evidence-item{background:var(--card);border:1px solid var(--border);border-radius:6px;padding:8px 10px;margin-bottom:6px;font-size:11px}
 </style>
 </head>
 <body>
-
 <div class="header">
   <div class="logo"><span>WIRE</span><span>HUNT</span></div>
   <span class="version" id="ver"></span>
@@ -137,7 +162,6 @@ tr:hover td{background:rgba(137,180,250,.03)}
     <button class="btn btn-primary" id="newBtn" style="display:none" onclick="reset()">New Scan</button>
   </div>
 </div>
-
 <div class="container">
   <div class="dropzone" id="dropzone" onclick="document.getElementById('fi').click()">
     <div class="icon">&#128194;</div>
@@ -148,225 +172,253 @@ tr:hover td{background:rgba(137,180,250,.03)}
   <div class="loading" id="loading"><div class="spinner"></div><p>Analyzing capture...</p></div>
   <div class="dashboard" id="dash"></div>
 </div>
-
-<div class="modal-overlay" id="modal"><div class="modal"><div class="modal-header"><h3 id="modalTitle">Stream</h3><button class="btn" onclick="closeModal()">Close</button></div><div class="modal-body" id="modalBody"></div></div></div>
-
+<div class="modal-overlay" id="modal"><div class="modal"><div class="modal-header"><h3 id="modalTitle">Detail</h3><button class="btn" onclick="closeModal()">Close</button></div><div class="modal-body" id="modalBody"></div></div></div>
 <script>
-let R = null; // current report
+let R=null;
 const $=s=>document.querySelector(s);
-
-// Drag & drop
-const dz=$('#dropzone'), fi=$('#fi');
+const dz=$('#dropzone'),fi=$('#fi');
 ['dragenter','dragover'].forEach(e=>dz.addEventListener(e,ev=>{ev.preventDefault();dz.classList.add('active')}));
 ['dragleave','drop'].forEach(e=>dz.addEventListener(e,ev=>{ev.preventDefault();dz.classList.remove('active')}));
 dz.addEventListener('drop',ev=>{if(ev.dataTransfer.files[0])upload(ev.dataTransfer.files[0])});
 fi.addEventListener('change',()=>{if(fi.files[0])upload(fi.files[0])});
-
 async function upload(file){
   dz.style.display='none';$('#loading').style.display='block';
   const form=new FormData();form.append('pcap',file);
-  try{
-    const res=await fetch('/api/analyze',{method:'POST',body:form});
-    if(!res.ok)throw new Error(await res.text());
-    R=await res.json();$('#loading').style.display='none';render();
-  }catch(e){$('#loading').style.display='none';dz.style.display='block';alert('Error: '+e.message)}
+  try{const res=await fetch('/api/analyze',{method:'POST',body:form});if(!res.ok)throw new Error(await res.text());R=await res.json();$('#loading').style.display='none';render()}
+  catch(e){$('#loading').style.display='none';dz.style.display='block';alert('Error: '+e.message)}
 }
 function reset(){$('#dash').style.display='none';$('#dash').innerHTML='';dz.style.display='block';fi.value='';$('#exportBtn').style.display='none';$('#newBtn').style.display='none';R=null}
 function exportJSON(){if(!R)return;const b=new Blob([JSON.stringify(R,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='wirehunt_report.json';a.click()}
 
+const MITRE_PHASES={
+  'Reconnaissance':['T1595','T1592','T1589','T1590','T1591','T1596','T1597','T1598'],
+  'Initial Access':['T1190','T1189','T1566','T1133','T1200','T1078'],
+  'Execution':['T1059','T1053','T1047','T1203','T1204'],
+  'Persistence':['T1098','T1136','T1543','T1547','T1574'],
+  'Privilege Esc.':['T1548','T1134','T1068'],
+  'Defense Evasion':['T1070','T1036','T1027','T1055','T1562'],
+  'Credential Access':['T1110','T1003','T1552','T1555','T1556','T1040','T1557','T1558'],
+  'Discovery':['T1083','T1046','T1135','T1082','T1049','T1016','T1018'],
+  'Lateral Movement':['T1021','T1091','T1570'],
+  'Collection':['T1560','T1119','T1005','T1039','T1074'],
+  'C2':['T1071','T1095','T1105','T1090','T1572','T1573','T1568','T1001','T1102'],
+  'Exfiltration':['T1041','T1048','T1567','T1029','T1030','T1020','T1537'],
+  'Impact':['T1485','T1486','T1489','T1490','T1491','T1498','T1499']
+};
+
 function render(){
-  const d=$('#dash');d.style.display='block';
-  $('#exportBtn').style.display='inline-block';$('#newBtn').style.display='inline-block';
+  const d=$('#dash');d.style.display='block';$('#exportBtn').style.display='inline-block';$('#newBtn').style.display='inline-block';
   const m=R.metadata;$('#ver').textContent='v'+m.wirehunt_version;
-
-  // Collect flags from findings
   const flags=R.findings.filter(f=>f.category==='ctf_flag');
-  const nonFlagFindings=R.findings.filter(f=>f.category!=='ctf_flag');
-
-  let html='';
+  let allMitre=new Set();R.findings.forEach(f=>f.mitre_attack.forEach(t=>{let base=t.split('.')[0];allMitre.add(base);allMitre.add(t)}));
+  R.iocs&&R.iocs.forEach(i=>i.mitre_attack&&i.mitre_attack.forEach(t=>{let base=t.split('.')[0];allMitre.add(base);allMitre.add(t)}));
+  let h='';
 
   // Flag banner
-  if(flags.length>0){
-    html+=`<div class="flag-banner"><h3>&#127937; ${flags.length} CTF Flag${flags.length>1?'s':''} Found!</h3><div>`;
-    flags.forEach(f=>{
-      const val=f.title.replace('CTF Flag Found: ','');
-      html+=`<span class="flag-value">${esc(val)}</span>`;
+  if(flags.length>0){h+=`<div class="flag-banner"><h3>&#127937; ${flags.length} CTF Flag${flags.length>1?'s':''} Found!</h3><div>`;flags.forEach(f=>{const val=f.title.replace('CTF Flag Found: ','');h+=`<span class="flag-value">${esc(val)}</span>`});h+=`</div></div>`}
+
+  // MITRE ATT&CK kill chain
+  if(allMitre.size>0){
+    h+=`<div class="card" style="margin-bottom:14px"><h3>MITRE ATT&CK Coverage</h3><div class="mitre-chain">`;
+    Object.entries(MITRE_PHASES).forEach(([phase,techs])=>{
+      const matched=techs.filter(t=>allMitre.has(t));
+      const active=matched.length>0;
+      h+=`<div class="mitre-phase${active?' active':''}"><div class="phase-name">${phase}</div><div class="phase-tags">`;
+      if(active)matched.forEach(t=>h+=`<span class="mitre-tag">${t}</span>`);
+      else h+=`<span style="font-size:9px;color:var(--overlay)">none</span>`;
+      h+=`</div></div>`;
     });
-    html+=`</div></div>`;
+    h+=`</div></div>`;
   }
 
-  // Findings box
-  if(R.findings.length>0){
-    html+=`<div class="findings-box"><h3>&#9888;&#65039; ${R.findings.length} Finding${R.findings.length>1?'s':''}</h3>`;
-    R.findings.slice(0,12).forEach(f=>{
-      const mitreHtml=f.mitre_attack.map(t=>`<span class="mitre">${t}</span>`).join(' ');
-      html+=`<div class="finding-row"><span class="sev sev-${f.severity}">${f.severity}</span><span style="flex:1">${esc(f.title)}</span><span style="color:var(--subtext);font-size:11px">${(f.confidence*100).toFixed(0)}%</span>${mitreHtml}</div>`;
-    });
-    if(R.findings.length>12)html+=`<div style="padding:8px 0;color:var(--subtext);font-size:12px">...and ${R.findings.length-12} more</div>`;
-    html+=`</div>`;
-  }
-
-  // File info
-  html+=`<div class="file-info">
-    <div class="fi"><div class="lbl">File</div><div class="val">${esc(m.pcap_filename)}</div></div>
-    <div class="fi"><div class="lbl">SHA256</div><div class="val hash">${m.pcap_sha256.slice(0,24)}...</div></div>
-    <div class="fi"><div class="lbl">Size</div><div class="val">${fmtB(m.pcap_size_bytes)}</div></div>
-    <div class="fi"><div class="lbl">Packets</div><div class="val">${m.total_packets.toLocaleString()}</div></div>
-    <div class="fi"><div class="lbl">Duration</div><div class="val">${m.capture_duration_secs.toFixed(1)}s</div></div>
-    <div class="fi"><div class="lbl">Profile</div><div class="val">${m.profile}</div></div></div>`;
+  // File info bar
+  h+=`<div class="file-bar">
+    <div><div class="lbl">File</div><div class="val">${esc(m.pcap_filename)}</div></div>
+    <div><div class="lbl">SHA256</div><div class="val hash">${m.pcap_sha256.slice(0,20)}...</div></div>
+    <div><div class="lbl">Size</div><div class="val">${fmtB(m.pcap_size_bytes)}</div></div>
+    <div><div class="lbl">Packets</div><div class="val">${m.total_packets.toLocaleString()}</div></div>
+    <div><div class="lbl">Duration</div><div class="val">${m.capture_duration_secs.toFixed(1)}s</div></div>
+    <div><div class="lbl">Profile</div><div class="val">${m.profile}</div></div></div>`;
 
   // Stats
-  html+=`<div class="stats">
+  const nIoc=(R.iocs||[]).length,nHost=(R.host_profiles||[]).length,nTl=(R.timeline||[]).length,nTls=(R.tls_sessions||[]).length;
+  h+=`<div class="stats">
     <div class="stat a"><div class="v">${R.flows.length}</div><div class="l">Flows</div></div>
     <div class="stat g"><div class="v">${R.streams.length}</div><div class="l">Streams</div></div>
-    <div class="stat y"><div class="v">${R.artifacts.length}</div><div class="l">Artifacts</div></div>
-    <div class="stat ${R.credentials.length?'r':''}"><div class="v">${R.credentials.length}</div><div class="l">Credentials</div></div>
     <div class="stat ${R.findings.length?'r':''}"><div class="v">${R.findings.length}</div><div class="l">Findings</div></div>
+    <div class="stat ${R.credentials.length?'r':''}"><div class="v">${R.credentials.length}</div><div class="l">Credentials</div></div>
+    <div class="stat y"><div class="v">${R.artifacts.length}</div><div class="l">Artifacts</div></div>
+    <div class="stat m"><div class="v">${nIoc}</div><div class="l">IOCs</div></div>
     <div class="stat"><div class="v">${R.dns_records.length}</div><div class="l">DNS</div></div>
-    <div class="stat"><div class="v">${R.http_transactions.length}</div><div class="l">HTTP</div></div></div>`;
+    <div class="stat"><div class="v">${R.http_transactions.length}</div><div class="l">HTTP</div></div>
+    <div class="stat t"><div class="v">${nTls}</div><div class="l">TLS</div></div>
+    <div class="stat"><div class="v">${nHost}</div><div class="l">Hosts</div></div></div>`;
+
+  // Grid: Findings + Protocol + Top Talkers
+  h+=`<div class="grid-3">`;
+
+  // Findings
+  h+=`<div class="card" style="max-height:320px;overflow-y:auto"><h3>Findings <span class="cnt">${R.findings.length}</span></h3>`;
+  if(R.findings.length===0)h+=`<div class="empty">No findings</div>`;
+  R.findings.slice(0,20).forEach((f,i)=>{
+    const mitreH=f.mitre_attack.map(t=>`<span class="mitre">${t}</span>`).join(' ');
+    h+=`<div class="finding-row" onclick="openFinding(${i})"><span class="sev sev-${f.severity}">${f.severity}</span><span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(f.title)}</span><span style="color:var(--subtext);font-size:10px">${(f.confidence*100).toFixed(0)}%</span>${mitreH}</div>`;
+  });
+  if(R.findings.length>20)h+=`<div style="padding:6px 0;color:var(--subtext);font-size:11px">+${R.findings.length-20} more</div>`;
+  h+=`</div>`;
 
   // Protocol chart
-  const pb=R.statistics.protocol_breakdown;const total=Object.values(pb).reduce((a,b)=>a+b,0);
-  const sorted=Object.entries(pb).sort((a,b)=>b[1]-a[1]);
+  const pb=R.statistics.protocol_breakdown;const total=Object.values(pb).reduce((a,b)=>a+b,0);const sorted=Object.entries(pb).sort((a,b)=>b[1]-a[1]);
   const colors=['var(--accent)','var(--green)','var(--yellow)','var(--mauve)','var(--teal)','var(--pink)','var(--peach)'];
-  if(sorted.length>0){
-    html+=`<div class="proto-chart"><h3>PROTOCOL BREAKDOWN</h3>`;
-    sorted.forEach(([name,count],i)=>{
-      const pct=total>0?(count/total*100):0;
-      html+=`<div class="proto-bar"><span class="name">${name}</span><div class="bar"><div class="fill" style="width:${pct}%;background:${colors[i%colors.length]}"></div></div><span class="count">${count} (${pct.toFixed(0)}%)</span></div>`;
-    });
-    html+=`</div>`;
-  }
+  h+=`<div class="card"><h3>Protocol Breakdown</h3>`;
+  sorted.forEach(([name,count],i)=>{const pct=total>0?(count/total*100):0;h+=`<div class="proto-bar"><span class="name">${name}</span><div class="bar"><div class="fill" style="width:${pct}%;background:${colors[i%colors.length]}"></div></div><span class="count">${count} (${pct.toFixed(0)}%)</span></div>`});
+  h+=`</div>`;
 
-  // Search bar
-  html+=`<div class="search-bar"><input type="text" placeholder="Search across all tables... (type to filter)" oninput="filterTables(this.value)"/></div>`;
+  // Top talkers
+  const talkers=R.statistics.top_talkers||[];
+  h+=`<div class="card" style="max-height:320px;overflow-y:auto"><h3>Top Talkers <span class="cnt">${talkers.length}</span></h3>`;
+  const maxBytes=talkers.length>0?talkers[0][1]:1;
+  talkers.slice(0,15).forEach(([ip,bytes])=>{const pct=bytes/maxBytes*100;h+=`<div class="talker-row"><span class="ip">${ip}</span><div class="bar"><div class="fill" style="width:${pct}%;background:var(--accent)"></div></div><span class="bytes">${fmtB(bytes)}</span></div>`});
+  h+=`</div>`;
+  h+=`</div>`; // end grid-3
+
+  // Search
+  h+=`<div class="search-bar"><input type="text" placeholder="Search across all tables... (type to filter)" oninput="filterTables(this.value)"/></div>`;
 
   // Tabs
   const tabs=[
-    {id:'flows',l:'Flows',c:R.flows.length},
-    {id:'streams',l:'Streams',c:R.streams.length},
-    {id:'http',l:'HTTP',c:R.http_transactions.length},
-    {id:'dns',l:'DNS',c:R.dns_records.length},
-    {id:'creds',l:'Credentials',c:R.credentials.length},
-    {id:'artifacts',l:'Artifacts',c:R.artifacts.length},
+    {id:'flows',l:'Flows',c:R.flows.length},{id:'streams',l:'Streams',c:R.streams.length},
+    {id:'http',l:'HTTP',c:R.http_transactions.length},{id:'dns',l:'DNS',c:R.dns_records.length},
+    {id:'tls',l:'TLS',c:nTls},{id:'creds',l:'Credentials',c:R.credentials.length},
+    {id:'artifacts',l:'Artifacts',c:R.artifacts.length},{id:'iocs',l:'IOCs',c:nIoc},
+    {id:'hosts',l:'Hosts',c:nHost},{id:'timeline',l:'Timeline',c:nTl},
   ];
-  html+=`<div class="tabs">${tabs.map((t,i)=>`<div class="tab${i===0?' active':''}" data-p="${t.id}" onclick="switchTab(this)">${t.l}<span class="cnt">${t.c}</span></div>`).join('')}</div>`;
+  h+=`<div class="tabs">${tabs.map((t,i)=>`<div class="tab${i===0?' active':''}" data-p="${t.id}" onclick="switchTab(this)">${t.l}<span class="cnt">${t.c}</span></div>`).join('')}</div>`;
 
-  // Panels
   // FLOWS
-  html+=`<div class="panel active" id="p-flows"><table><thead><tr><th>#</th><th>Proto</th><th>Source</th><th>Destination</th><th>Pkts</th><th>Bytes</th><th>App</th><th>Flags</th></tr></thead><tbody class="filterable">`;
+  h+=`<div class="panel active" id="p-flows"><table><thead><tr><th>#</th><th>Proto</th><th>Source</th><th>Destination</th><th>Pkts</th><th>Bytes</th><th>App</th><th>Duration</th><th>Flags</th></tr></thead><tbody class="filterable">`;
   R.flows.forEach((f,i)=>{
     const p=f.key.protocol;const pc=p==='tcp'?'pb-tcp':p==='udp'?'pb-udp':'pb-icmp';
     const fl=[];if(f.flags.syn)fl.push('SYN');if(f.flags.syn_ack)fl.push('SA');if(f.flags.fin)fl.push('FIN');if(f.flags.rst)fl.push('RST');if(f.flags.has_retransmits)fl.push('RETR');
-    html+=`<tr><td>${i}</td><td><span class="proto-badge ${pc}">${p.toUpperCase()}</span></td><td class="mono">${f.key.src_ip}:${f.key.src_port}</td><td class="mono">${f.key.dst_ip}:${f.key.dst_port}</td><td>${f.packet_count}</td><td>${fmtB(f.byte_count)}</td><td>${f.detected_protocol||'-'}</td><td style="font-size:11px;color:var(--subtext)">${fl.join(' ')}</td></tr>`;
-  });
-  html+=`</tbody></table></div>`;
+    const dur=(f.duration_us/1000000).toFixed(2)+'s';
+    h+=`<tr><td>${i}</td><td><span class="proto-badge ${pc}">${p.toUpperCase()}</span></td><td class="mono">${f.key.src_ip}:${f.key.src_port}</td><td class="mono">${f.key.dst_ip}:${f.key.dst_port}</td><td>${f.packet_count}</td><td>${fmtB(f.byte_count)}</td><td>${f.detected_protocol||'-'}</td><td style="color:var(--subtext)">${dur}</td><td style="font-size:10px;color:var(--subtext)">${fl.join(' ')}</td></tr>`;
+  });h+=`</tbody></table></div>`;
 
   // STREAMS
-  html+=`<div class="panel" id="p-streams"><table><thead><tr><th>#</th><th>Proto</th><th>Bytes</th><th>Segs</th><th>Preview</th><th></th></tr></thead><tbody class="filterable">`;
-  R.streams.forEach((s,i)=>{
-    let prev='';if(s.segments.length>0){const b=s.segments[0].data;prev=b.map(c=>c>=32&&c<127?String.fromCharCode(c):'.').join('').slice(0,60)}
-    prev=highlightFlags(esc(prev));
-    html+=`<tr><td>${i}</td><td>${s.protocol}</td><td>${fmtB(s.total_bytes)}</td><td>${s.segments.length}</td><td class="mono" style="font-size:11px;color:var(--subtext)">${prev}</td><td><button class="btn" style="padding:3px 10px;font-size:11px" onclick="openStream(${i})">View</button></td></tr>`;
-  });
-  html+=`</tbody></table></div>`;
+  h+=`<div class="panel" id="p-streams"><table><thead><tr><th>#</th><th>Proto</th><th>Bytes</th><th>Segs</th><th>Preview</th><th></th></tr></thead><tbody class="filterable">`;
+  R.streams.forEach((s,i)=>{let prev='';if(s.segments.length>0){const b=s.segments[0].data;prev=b.map(c=>c>=32&&c<127?String.fromCharCode(c):'.').join('').slice(0,60)}prev=highlightFlags(esc(prev));
+    h+=`<tr><td>${i}</td><td>${s.protocol}</td><td>${fmtB(s.total_bytes)}</td><td>${s.segments.length}</td><td class="mono" style="color:var(--subtext)">${prev}</td><td><button class="btn" style="padding:2px 8px;font-size:10px" onclick="openStream(${i})">View</button></td></tr>`;
+  });h+=`</tbody></table></div>`;
 
   // HTTP
-  html+=`<div class="panel" id="p-http"><table><thead><tr><th>#</th><th>Method</th><th>Status</th><th>Host</th><th>URI</th><th>Type</th><th>Agent</th></tr></thead><tbody class="filterable">`;
-  R.http_transactions.forEach((t,i)=>{
-    const sc=t.status_code;const scl=sc?sc<300?'s2':sc<400?'s3':sc<500?'s4':'s5':'';
-    html+=`<tr><td>${i}</td><td class="m-${t.method}">${t.method}</td><td>${sc?`<span class="status ${scl}">${sc}</span>`:'-'}</td><td>${esc(t.host||'-')}</td><td class="mono">${esc(t.uri)}</td><td style="font-size:11px">${esc(t.content_type||'-')}</td><td style="font-size:11px;max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--subtext)">${esc(t.user_agent||'-')}</td></tr>`;
-  });
-  html+=`</tbody></table></div>`;
+  h+=`<div class="panel" id="p-http"><table><thead><tr><th>#</th><th>Method</th><th>Status</th><th>Host</th><th>URI</th><th>Content-Type</th><th>Resp Size</th><th>User-Agent</th></tr></thead><tbody class="filterable">`;
+  R.http_transactions.forEach((t,i)=>{const sc=t.status_code;const scl=sc?sc<300?'s2':sc<400?'s3':sc<500?'s4':'s5':'';
+    h+=`<tr><td>${i}</td><td class="m-${t.method}">${t.method}</td><td>${sc?`<span class="status ${scl}">${sc}</span>`:'-'}</td><td>${esc(t.host||'-')}</td><td class="mono">${esc(t.uri)}</td><td style="font-size:10px">${esc(t.content_type||'-')}</td><td>${fmtB(t.response_body_size)}</td><td style="font-size:10px;max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--subtext)">${esc(t.user_agent||'-')}</td></tr>`;
+  });h+=`</tbody></table></div>`;
 
   // DNS
-  html+=`<div class="panel" id="p-dns"><table><thead><tr><th>#</th><th>Dir</th><th>Type</th><th>Query Name</th><th>Response</th><th>TTL</th></tr></thead><tbody class="filterable">`;
+  h+=`<div class="panel" id="p-dns"><table><thead><tr><th>#</th><th>Dir</th><th>Type</th><th>Query Name</th><th>Response</th><th>TTL</th><th>RCode</th></tr></thead><tbody class="filterable">`;
   R.dns_records.forEach((d,i)=>{
-    html+=`<tr><td>${i}</td><td><span class="dir ${d.is_response?'dir-r':'dir-q'}">${d.is_response?'RESP':'QUERY'}</span></td><td style="color:var(--accent)">${d.record_type}</td><td class="mono">${highlightFlags(esc(d.query_name))}</td><td class="mono">${highlightFlags(esc(d.response_data.join(', ')))}</td><td style="color:var(--subtext)">${d.ttl||'-'}</td></tr>`;
-  });
-  html+=`</tbody></table></div>`;
+    h+=`<tr><td>${i}</td><td><span class="dir ${d.is_response?'dir-r':'dir-q'}">${d.is_response?'RESP':'QUERY'}</span></td><td style="color:var(--accent)">${d.record_type}</td><td class="mono">${highlightFlags(esc(d.query_name))}</td><td class="mono">${highlightFlags(esc(d.response_data.join(', ')))}</td><td style="color:var(--subtext)">${d.ttl||'-'}</td><td>${esc(d.response_code||'-')}</td></tr>`;
+  });h+=`</tbody></table></div>`;
 
-  // CREDS
-  html+=`<div class="panel" id="p-creds"><table><thead><tr><th>#</th><th>Type</th><th>User</th><th>Service</th><th>Secret</th></tr></thead><tbody class="filterable">`;
-  R.credentials.forEach((c,i)=>{
-    html+=`<tr><td>${i}</td><td style="color:var(--yellow)">${esc(c.kind)}</td><td>${esc(c.username||'-')}</td><td>${esc(c.service||'-')}</td><td><span class="cred-secret">${esc(c.secret.slice(0,80))}</span></td></tr>`;
-  });
-  html+=`</tbody></table></div>`;
+  // TLS
+  h+=`<div class="panel" id="p-tls"><table><thead><tr><th>#</th><th>Version</th><th>SNI</th><th>Cipher Suite</th><th>ALPN</th><th>JA3</th><th>JA3S</th><th>Cert Subject</th><th>Self-Signed</th></tr></thead><tbody class="filterable">`;
+  (R.tls_sessions||[]).forEach((t,i)=>{
+    const ss=t.is_self_signed===true?'<span style="color:var(--red)">YES</span>':t.is_self_signed===false?'No':'-';
+    h+=`<tr><td>${i}</td><td style="color:var(--accent)">${esc(t.version)}</td><td class="mono">${esc(t.sni||'-')}</td><td style="font-size:10px">${esc(t.cipher_suite||'-')}</td><td style="font-size:10px">${(t.alpn||[]).join(', ')||'-'}</td><td class="mono" style="font-size:9px">${(t.ja3_hash||'-').slice(0,16)}...</td><td class="mono" style="font-size:9px">${(t.ja3s_hash||'-').slice(0,16)}...</td><td style="font-size:10px">${esc(t.cert_subject||'-')}</td><td>${ss}</td></tr>`;
+  });h+=`</tbody></table></div>`;
+
+  // CREDENTIALS
+  h+=`<div class="panel" id="p-creds"><table><thead><tr><th>#</th><th>Type</th><th>Username</th><th>Service</th><th>Host</th><th>Secret</th></tr></thead><tbody class="filterable">`;
+  R.credentials.forEach((c,i)=>{h+=`<tr><td>${i}</td><td style="color:var(--yellow)">${esc(c.kind)}</td><td>${esc(c.username||'-')}</td><td>${esc(c.service||'-')}</td><td>${esc(c.host||'-')}</td><td><span class="cred-secret">${esc(c.secret.slice(0,80))}</span></td></tr>`});
+  h+=`</tbody></table></div>`;
 
   // ARTIFACTS
-  html+=`<div class="panel" id="p-artifacts"><table><thead><tr><th>#</th><th>Type</th><th>Name</th><th>Size</th><th>MIME</th><th>SHA256</th></tr></thead><tbody class="filterable">`;
-  R.artifacts.forEach((a,i)=>{
-    html+=`<tr><td>${i}</td><td style="color:var(--yellow)">${esc(a.kind)}</td><td>${esc(a.name||'-')}</td><td>${fmtB(a.size_bytes)}</td><td style="font-size:11px">${esc(a.mime_type||'-')}</td><td class="mono" style="font-size:10px">${a.sha256.slice(0,20)}...</td></tr>`;
-  });
-  html+=`</tbody></table></div>`;
+  h+=`<div class="panel" id="p-artifacts"><table><thead><tr><th>#</th><th>Type</th><th>Name</th><th>Size</th><th>MIME</th><th>SHA256</th><th>MD5</th></tr></thead><tbody class="filterable">`;
+  R.artifacts.forEach((a,i)=>{h+=`<tr><td>${i}</td><td style="color:var(--yellow)">${esc(a.kind)}</td><td>${esc(a.name||'-')}</td><td>${fmtB(a.size_bytes)}</td><td style="font-size:10px">${esc(a.mime_type||'-')}</td><td class="mono" style="font-size:9px">${a.sha256.slice(0,20)}...</td><td class="mono" style="font-size:9px">${a.md5.slice(0,16)}...</td></tr>`});
+  h+=`</tbody></table></div>`;
 
-  d.innerHTML=html;
+  // IOCs
+  h+=`<div class="panel" id="p-iocs"><table><thead><tr><th>#</th><th>Type</th><th>Value</th><th>Description</th><th>Confidence</th><th>MITRE</th><th>Source</th></tr></thead><tbody class="filterable">`;
+  (R.iocs||[]).forEach((ioc,i)=>{
+    const kindCls={'ip_address':'ioc-ip','domain':'ioc-domain','url':'ioc-url','file_hash':'ioc-hash','ja3_fingerprint':'ioc-ja3','ja3s_fingerprint':'ioc-ja3','user_agent':'ioc-ua'}[ioc.kind]||'';
+    const confPct=(ioc.confidence*100).toFixed(0);
+    const confColor=ioc.confidence>0.7?'var(--red)':ioc.confidence>0.4?'var(--yellow)':'var(--subtext)';
+    const mitreH=(ioc.mitre_attack||[]).map(t=>`<span class="mitre">${t}</span>`).join(' ');
+    h+=`<tr><td>${i}</td><td><span class="ioc-kind ${kindCls}">${ioc.kind}</span></td><td class="mono" style="word-break:break-all;max-width:300px">${esc(ioc.value)}</td><td style="font-size:10px;max-width:200px">${esc(ioc.description||'-')}</td><td><span class="conf-bar"><span class="conf-fill" style="width:${confPct}%;background:${confColor}"></span></span>${confPct}%</td><td>${mitreH}</td><td style="font-size:10px;color:var(--subtext)">${esc(ioc.source||'-')}</td></tr>`;
+  });h+=`</tbody></table></div>`;
+
+  // HOSTS
+  h+=`<div class="panel" id="p-hosts" style="padding:12px;max-height:500px;overflow-y:auto">`;
+  (R.host_profiles||[]).slice(0,50).forEach(hp=>{
+    const totalB=hp.total_bytes_sent+hp.total_bytes_received;
+    const svcs=hp.services.map(s=>`<span class="svc">${s.port}/${s.protocol}${s.app_protocol?' '+s.app_protocol:''}</span>`).join('');
+    h+=`<div class="host-card"><div class="ip">${hp.ip}</div>`;
+    if(hp.hostnames&&hp.hostnames.length)h+=`<div class="hostnames">${hp.hostnames.join(', ')}</div>`;
+    h+=`<div class="host-meta"><span>Flows: ${hp.total_flows}</span><span>Sent: ${fmtB(hp.total_bytes_sent)}</span><span>Recv: ${fmtB(hp.total_bytes_received)}</span><span>Total: ${fmtB(totalB)}</span></div>`;
+    if(svcs)h+=`<div style="margin-top:4px">${svcs}</div>`;
+    h+=`</div>`;
+  });
+  if((R.host_profiles||[]).length===0)h+=`<div class="empty">No host profiles</div>`;
+  h+=`</div>`;
+
+  // TIMELINE
+  h+=`<div class="panel" id="p-timeline" style="padding:12px;max-height:500px;overflow-y:auto">`;
+  (R.timeline||[]).slice(0,200).forEach(ev=>{
+    const sev=(ev.severity||'Info').toLowerCase();
+    const ts=ev.timestamp?new Date(ev.timestamp).toISOString().replace('T',' ').slice(11,19):'--:--:--';
+    h+=`<div class="tl-event"><span class="tl-dot ${sev}"></span><span class="tl-time">${ts}</span><span class="tl-type">${esc(ev.event_type)}</span><span style="flex:1">${esc(ev.summary)}</span></div>`;
+  });
+  if((R.timeline||[]).length===0)h+=`<div class="empty">No timeline events</div>`;
+  h+=`</div>`;
+
+  d.innerHTML=h;
 }
 
-function switchTab(el){
-  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
-  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
-  el.classList.add('active');
-  const p=document.getElementById('p-'+el.dataset.p);if(p)p.classList.add('active');
-}
+function switchTab(el){document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));el.classList.add('active');const p=document.getElementById('p-'+el.dataset.p);if(p)p.classList.add('active')}
+function filterTables(q){const lq=q.toLowerCase();document.querySelectorAll('.filterable tr').forEach(tr=>{tr.style.display=tr.textContent.toLowerCase().includes(lq)?'':'none'})}
 
-function filterTables(q){
-  const lq=q.toLowerCase();
-  document.querySelectorAll('.filterable tr').forEach(tr=>{
-    tr.style.display=tr.textContent.toLowerCase().includes(lq)?'':'none';
-  });
+function openFinding(idx){
+  const f=R.findings[idx];if(!f)return;
+  const modal=$('#modal'),body=$('#modalBody');
+  $('#modalTitle').textContent=f.title;
+  let h=`<div class="detail-grid">
+    <div class="lbl">Severity</div><div><span class="sev sev-${f.severity}">${f.severity}</span></div>
+    <div class="lbl">Confidence</div><div>${(f.confidence*100).toFixed(0)}%</div>
+    <div class="lbl">Category</div><div>${f.category}</div>
+    <div class="lbl">MITRE ATT&CK</div><div>${f.mitre_attack.map(t=>`<span class="mitre">${t}</span>`).join(' ')||'-'}</div>
+    <div class="lbl">Tags</div><div>${f.tags.join(', ')||'-'}</div>
+    <div class="lbl">Description</div><div>${esc(f.description)}</div></div>`;
+  if(f.evidence&&f.evidence.length>0){h+=`<h4 style="font-size:12px;color:var(--subtext);margin:10px 0 6px">Evidence (${f.evidence.length})</h4>`;
+    f.evidence.forEach(e=>{h+=`<div class="evidence-item"><strong>${e.kind}</strong> ${esc(e.description)}${e.stream_id?' <span class="mono" style="color:var(--accent)">stream:'+e.stream_id.slice(0,12)+'</span>':''}${e.artifact_id?' <span class="mono" style="color:var(--yellow)">artifact:'+e.artifact_id.slice(0,12)+'</span>':''}</div>`})}
+  if(f.pivots&&f.pivots.length>0){h+=`<h4 style="font-size:12px;color:var(--subtext);margin:10px 0 6px">Suggested Pivots</h4>`;
+    f.pivots.forEach(p=>{h+=`<div class="evidence-item">${esc(p.description)}${p.query?' <code class="mono" style="color:var(--accent)">'+esc(p.query)+'</code>':''}${p.command?' <code class="mono">'+esc(p.command)+'</code>':''}</div>`})}
+  body.innerHTML=h;modal.classList.add('open');
 }
 
 function openStream(idx){
   const s=R.streams[idx];if(!s)return;
-  const modal=$('#modal');const body=$('#modalBody');
+  const modal=$('#modal'),body=$('#modalBody');
   $('#modalTitle').textContent=`Stream #${idx} - ${s.protocol} (${fmtB(s.total_bytes)}, ${s.segments.length} segments)`;
-  let html=`<div style="margin-bottom:10px"><button class="toggle-hex" onclick="toggleHex(this)" data-idx="${idx}">Hex View</button></div>`;
-  html+=`<div id="streamText">`;
-  s.segments.forEach((seg,i)=>{
-    const dir=seg.direction;
-    const isClient=dir==='client_to_server';
-    const label=isClient?'&#9654; CLIENT':'&#9664; SERVER';
-    const cls=isClient?'dir-client':'dir-server';
-    const ccls=isClient?'client':'server';
-    let content=seg.data.map(b=>b>=32&&b<127?String.fromCharCode(b):(b===10?'\n':b===13?'':b===9?'\t':'.')).join('');
-    content=highlightFlags(esc(content));
-    html+=`<div class="seg"><div class="seg-header"><span class="${cls}">${label}</span> <span style="color:var(--subtext);font-size:11px">${seg.data.length} bytes</span></div><div class="seg-content ${ccls}">${content}</div></div>`;
-  });
-  html+=`</div><div id="streamHex" style="display:none">`;
-  s.segments.forEach((seg,i)=>{
-    const isClient=seg.direction==='client_to_server';
-    const label=isClient?'CLIENT':'SERVER';
-    const cls=isClient?'dir-client':'dir-server';
-    html+=`<div class="seg"><div class="seg-header"><span class="${cls}">${label}</span></div><div class="seg-content" style="font-size:11px">`;
-    for(let off=0;off<seg.data.length;off+=16){
-      const slice=seg.data.slice(off,off+16);
-      const hexPart=slice.map(b=>b.toString(16).padStart(2,'0')).join(' ').padEnd(47);
-      const ascPart=slice.map(b=>b>=32&&b<127?String.fromCharCode(b):'.').join('');
-      html+=`<span style="color:var(--overlay)">${off.toString(16).padStart(8,'0')}</span>  ${hexPart}  <span style="color:var(--accent)">${esc(ascPart)}</span>\n`;
-    }
-    html+=`</div></div>`;
-  });
-  html+=`</div>`;
-  body.innerHTML=html;modal.classList.add('open');
+  let h=`<div style="margin-bottom:10px"><button class="toggle-hex" onclick="toggleHex(this)" data-idx="${idx}">Hex View</button></div><div id="streamText">`;
+  s.segments.forEach(seg=>{const isClient=seg.direction==='client_to_server';const label=isClient?'&#9654; CLIENT':'&#9664; SERVER';const cls=isClient?'dir-client':'dir-server';const ccls=isClient?'client':'server';
+    let content=seg.data.map(b=>b>=32&&b<127?String.fromCharCode(b):(b===10?'\n':b===13?'':b===9?'\t':'.')).join('');content=highlightFlags(esc(content));
+    h+=`<div class="seg"><div class="seg-header"><span class="${cls}">${label}</span><span style="color:var(--subtext);font-size:10px">${seg.data.length} bytes</span></div><div class="seg-content ${ccls}">${content}</div></div>`});
+  h+=`</div><div id="streamHex" style="display:none">`;
+  s.segments.forEach(seg=>{const isClient=seg.direction==='client_to_server';const cls=isClient?'dir-client':'dir-server';
+    h+=`<div class="seg"><div class="seg-header"><span class="${cls}">${isClient?'CLIENT':'SERVER'}</span></div><div class="seg-content" style="font-size:10px">`;
+    for(let off=0;off<seg.data.length;off+=16){const sl=seg.data.slice(off,off+16);h+=`<span style="color:var(--overlay)">${off.toString(16).padStart(8,'0')}</span>  ${sl.map(b=>b.toString(16).padStart(2,'0')).join(' ').padEnd(47)}  <span style="color:var(--accent)">${esc(sl.map(b=>b>=32&&b<127?String.fromCharCode(b):'.').join(''))}</span>\n`}
+    h+=`</div></div>`});
+  h+=`</div>`;body.innerHTML=h;modal.classList.add('open');
 }
 function closeModal(){$('#modal').classList.remove('open')}
 document.addEventListener('keydown',e=>{if(e.key==='Escape')closeModal()});
 $('#modal').addEventListener('click',e=>{if(e.target===$('#modal'))closeModal()});
-
-function toggleHex(btn){
-  btn.classList.toggle('active');
-  const text=$('#streamText'),hex=$('#streamHex');
-  if(btn.classList.contains('active')){text.style.display='none';hex.style.display='block'}
-  else{text.style.display='block';hex.style.display='none'}
-}
-
-function highlightFlags(s){
-  return s.replace(/([a-zA-Z]{2,12}\{[^}]{1,200}\})/g,'<span class="flag-highlight">$1</span>');
-}
-
+function toggleHex(btn){btn.classList.toggle('active');const t=$('#streamText'),hx=$('#streamHex');if(btn.classList.contains('active')){t.style.display='none';hx.style.display='block'}else{t.style.display='block';hx.style.display='none'}}
+function highlightFlags(s){return s.replace(/([a-zA-Z]{2,12}\{[^}]{1,200}\})/g,'<span class="flag-highlight">$1</span>')}
 function fmtB(b){if(b>=1073741824)return(b/1073741824).toFixed(1)+' GB';if(b>=1048576)return(b/1048576).toFixed(1)+' MB';if(b>=1024)return(b/1024).toFixed(1)+' KB';return b+' B'}
-function esc(s){return s?s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'):''}
+function esc(s){return s?String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'):''}
 </script>
 </body>
 </html>

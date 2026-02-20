@@ -42,8 +42,20 @@ console = "0.15"
 # Time
 chrono = { version = "0.4", features = ["serde"] }
 
+# IDs
+uuid = { version = "1", features = ["v4"] }
+
 # Web GUI server
 axum = { version = "0.8", features = ["multipart"] }
 tower-http = { version = "0.6", features = ["cors"] }
 open = "5"
 tempfile = "3"
+
+# Live capture (optional, requires libpcap/Npcap)
+pcap = { version = "2", optional = true }
+ctrlc = { version = "3", optional = true }
+regex = "1"
+
+[features]
+default = []
+live = ["pcap", "ctrlc"]
