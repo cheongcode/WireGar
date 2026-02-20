@@ -1,0 +1,25 @@
+[package]
+name = "wirehunt-ai"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+description = "WireHunt AI layer - optional, sandboxed AI-powered analysis"
+
+[dependencies]
+# Serialization
+serde.workspace = true
+serde_json.workspace = true
+
+# Error handling
+thiserror.workspace = true
+anyhow.workspace = true
+
+# Logging
+tracing.workspace = true
+
+# Async
+tokio.workspace = true
+
+# HTTP client for AI APIs
+reqwest = { version = "0.12", features = ["json", "rustls-tls"], default-features = false }

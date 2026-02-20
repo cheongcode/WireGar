@@ -1,0 +1,22 @@
+# Rust build artifacts
+/target/
+**/*.rs.bk
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Old Python venvs (legacy WireGar)
+/venv/
+/env/
+__pycache__/
+*.pyc
+
+# Case output directories
+/case/

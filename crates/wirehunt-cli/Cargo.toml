@@ -1,0 +1,49 @@
+[package]
+name = "wirehunt-cli"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+description = "WireHunt CLI - power-user command-line interface"
+
+[[bin]]
+name = "wirehunt"
+path = "src/main.rs"
+
+[dependencies]
+# Core engine
+wirehunt-core.workspace = true
+wirehunt-rules.workspace = true
+wirehunt-ai.workspace = true
+
+# Serialization
+serde.workspace = true
+serde_json.workspace = true
+
+# Error handling
+anyhow.workspace = true
+
+# Logging
+tracing.workspace = true
+tracing-subscriber.workspace = true
+
+# Async runtime
+tokio.workspace = true
+
+# CLI framework
+clap = { version = "4", features = ["derive", "color", "suggestions", "wrap_help"] }
+
+# Terminal output
+colored = "3"
+indicatif = "0.17"
+tabled = "0.17"
+console = "0.15"
+
+# Time
+chrono = { version = "0.4", features = ["serde"] }
+
+# Web GUI server
+axum = { version = "0.8", features = ["multipart"] }
+tower-http = { version = "0.6", features = ["cors"] }
+open = "5"
+tempfile = "3"

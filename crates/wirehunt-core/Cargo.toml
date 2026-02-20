@@ -1,0 +1,57 @@
+[package]
+name = "wirehunt-core"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+description = "Core deterministic engine: ingest, sessionize, dissect, extract, detect, index"
+
+[dependencies]
+# Serialization
+serde.workspace = true
+serde_json.workspace = true
+
+# Error handling
+thiserror.workspace = true
+anyhow.workspace = true
+
+# Logging
+tracing.workspace = true
+
+# Packet parsing
+pcap-parser = "0.16"
+etherparse = "0.16"
+nom = "7"
+
+# TLS analysis
+tls-parser = "0.12"
+
+# Database / indexing
+rusqlite = { version = "0.32", features = ["bundled"] }
+
+# Crypto / hashing
+sha2 = "0.10"
+md-5 = "0.10"
+base64 = "0.22"
+hex = "0.4"
+flate2 = "1"
+percent-encoding = "2"
+
+# Pattern matching
+regex = "1"
+
+# Time
+chrono = { version = "0.4", features = ["serde"] }
+
+# Unique IDs
+uuid = { version = "1", features = ["v4", "serde"] }
+
+# Rules crate
+wirehunt-rules = { path = "../wirehunt-rules" }
+
+[dev-dependencies]
+criterion = "0.5"
+
+[[bench]]
+name = "parse_bench"
+harness = false

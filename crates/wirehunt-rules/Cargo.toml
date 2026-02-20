@@ -1,0 +1,26 @@
+[package]
+name = "wirehunt-rules"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+description = "WireHunt detection rules engine - CTF, credentials, IOC, anomaly rule packs"
+
+[dependencies]
+# Serialization
+serde.workspace = true
+serde_json.workspace = true
+serde_yaml = "0.9"
+
+# Error handling
+thiserror.workspace = true
+anyhow.workspace = true
+
+# Logging
+tracing.workspace = true
+
+# Pattern matching
+regex = "1"
+
+# Glob patterns for matching
+glob = "0.3"
