@@ -444,6 +444,11 @@ mod tests {
             }],
             http_transactions: vec![],
             tls_sessions: vec![],
+            ftp_sessions: vec![],
+            ssh_sessions: vec![],
+            telnet_sessions: vec![],
+            dhcp_leases: vec![],
+            smb_sessions: vec![],
             host_profiles: vec![],
             timeline: vec![],
             statistics: AnalysisStatistics {

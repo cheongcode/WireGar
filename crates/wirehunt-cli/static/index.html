@@ -290,6 +290,7 @@ function render(){
 
   // Stats
   const nIoc=(R.iocs||[]).length,nHost=(R.host_profiles||[]).length,nTl=(R.timeline||[]).length,nTls=(R.tls_sessions||[]).length;
+  const nFtp=(R.ftp_sessions||[]).length,nSsh=(R.ssh_sessions||[]).length,nTelnet=(R.telnet_sessions||[]).length,nDhcp=(R.dhcp_leases||[]).length,nSmb=(R.smb_sessions||[]).length;
   h+=`<div class="stats">
     <div class="stat a"><div class="v">${R.flows.length}</div><div class="l">Flows</div></div>
     <div class="stat g"><div class="v">${R.streams.length}</div><div class="l">Streams</div></div>
@@ -326,7 +327,13 @@ function render(){
   h+=`<div class="search-bar"><input type="text" placeholder="Search across all tables..." oninput="filterTables(this.value)"/></div>`;
 
   // Tabs
-  const tabs=[{id:'flows',l:'Flows',c:R.flows.length},{id:'streams',l:'Streams',c:R.streams.length},{id:'http',l:'HTTP',c:R.http_transactions.length},{id:'dns',l:'DNS',c:R.dns_records.length},{id:'tls',l:'TLS',c:nTls},{id:'creds',l:'Credentials',c:R.credentials.length},{id:'artifacts',l:'Artifacts',c:R.artifacts.length},{id:'iocs',l:'IOCs',c:nIoc},{id:'hosts',l:'Hosts',c:nHost},{id:'graph',l:'Network Graph',c:''},{id:'timeline',l:'Timeline',c:nTl}];
+  const protoTabs=[];
+  if(nFtp)protoTabs.push({id:'ftp',l:'FTP',c:nFtp});
+  if(nSsh)protoTabs.push({id:'ssh',l:'SSH',c:nSsh});
+  if(nTelnet)protoTabs.push({id:'telnet',l:'Telnet',c:nTelnet});
+  if(nDhcp)protoTabs.push({id:'dhcp',l:'DHCP',c:nDhcp});
+  if(nSmb)protoTabs.push({id:'smb',l:'SMB',c:nSmb});
+  const tabs=[{id:'flows',l:'Flows',c:R.flows.length},{id:'streams',l:'Streams',c:R.streams.length},{id:'http',l:'HTTP',c:R.http_transactions.length},{id:'dns',l:'DNS',c:R.dns_records.length},{id:'tls',l:'TLS',c:nTls},...protoTabs,{id:'creds',l:'Credentials',c:R.credentials.length},{id:'artifacts',l:'Artifacts',c:R.artifacts.length},{id:'iocs',l:'IOCs',c:nIoc},{id:'hosts',l:'Hosts',c:nHost},{id:'graph',l:'Network Graph',c:''},{id:'timeline',l:'Timeline',c:nTl}];
   h+=`<div class="tabs">${tabs.map((t,i)=>`<div class="tab${i===0?' active':''}" data-p="${t.id}" onclick="switchTab(this)">${t.l}${t.c!==''?`<span class="cnt">${t.c}</span>`:''}</div>`).join('')}</div>`;
 
   // FLOWS
@@ -360,6 +367,49 @@ function render(){
   (R.tls_sessions||[]).forEach((t,i)=>{const ss=t.is_self_signed===true?'<span style="color:var(--red)">YES</span>':t.is_self_signed===false?'No':'-';
     h+=`<tr><td>${i}</td><td style="color:var(--accent)">${esc(t.version)}</td><td class="mono">${esc(t.sni||'-')}</td><td style="font-size:9px">${esc(t.cipher_suite||'-')}</td><td style="font-size:9px">${(t.alpn||[]).join(', ')||'-'}</td><td class="mono" style="font-size:8px">${(t.ja3_hash||'-').slice(0,14)}..</td><td class="mono" style="font-size:8px">${(t.ja3s_hash||'-').slice(0,14)}..</td><td style="font-size:9px">${esc(t.cert_subject||'-')}</td><td>${ss}</td></tr>`});
   h+=`</tbody></table></div>`;
+
+  // FTP Sessions
+  if(nFtp){
+    h+=`<div class="panel" id="p-ftp"><table><thead><tr><th>#</th><th>User</th><th>Password</th><th>Files Transferred</th><th>AUTH TLS</th><th>Passive</th><th>Data Ports</th><th>Bytes</th><th>Commands</th></tr></thead><tbody class="filterable">`;
+    (R.ftp_sessions||[]).forEach((f,i)=>{
+      const cmds=(f.commands||[]).filter(c=>c.direction==='client_to_server').map(c=>c.command).join(' ');
+      h+=`<tr><td>${i}</td><td>${esc(f.username||'-')}</td><td><span class="cred-secret">${esc(f.password||'-')}</span></td><td>${(f.files_transferred||[]).map(x=>esc(x)).join(', ')||'-'}</td><td>${f.auth_tls?'<span style="color:var(--green)">YES</span>':'No'}</td><td>${f.passive_mode?'Yes':'No'}</td><td>${(f.data_channel_ports||[]).join(', ')||'-'}</td><td>${fmtB(f.transfer_bytes||0)}</td><td class="mono" style="font-size:8px;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(cmds)}</td></tr>`});
+    h+=`</tbody></table></div>`;
+  }
+
+  // SSH Sessions
+  if(nSsh){
+    h+=`<div class="panel" id="p-ssh"><table><thead><tr><th>#</th><th>Client Banner</th><th>Server Banner</th><th>Client Ver</th><th>Server Ver</th><th>Kex Algorithms</th><th>Ciphers</th></tr></thead><tbody class="filterable">`;
+    (R.ssh_sessions||[]).forEach((s,i)=>{
+      h+=`<tr><td>${i}</td><td class="mono" style="font-size:9px">${esc(s.client_banner||'-')}</td><td class="mono" style="font-size:9px">${esc(s.server_banner||'-')}</td><td>${esc(s.client_version||'-')}</td><td>${esc(s.server_version||'-')}</td><td style="font-size:8px;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${(s.kex_algorithms||[]).join(', ')||'-'}</td><td style="font-size:8px;max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${(s.ciphers||[]).join(', ')||'-'}</td></tr>`});
+    h+=`</tbody></table></div>`;
+  }
+
+  // Telnet Sessions
+  if(nTelnet){
+    h+=`<div class="panel" id="p-telnet"><table><thead><tr><th>#</th><th>Credentials</th><th>Negotiation Options</th><th>Content Preview</th></tr></thead><tbody class="filterable">`;
+    (R.telnet_sessions||[]).forEach((t,i)=>{
+      const creds=(t.credentials_seen||[]).map(c=>`${esc(c.username||'?')}:${esc(c.password||'?')}`).join(', ');
+      const preview=(t.content||'').slice(0,200);
+      h+=`<tr><td>${i}</td><td>${creds?`<span class="cred-secret">${creds}</span>`:'none'}</td><td style="font-size:8px">${esc((t.negotiation_options||[]).join(', '))||'-'}</td><td class="mono" style="font-size:8px;max-width:300px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(preview)}</td></tr>`});
+    h+=`</tbody></table></div>`;
+  }
+
+  // DHCP Leases
+  if(nDhcp){
+    h+=`<div class="panel" id="p-dhcp"><table><thead><tr><th>#</th><th>Type</th><th>Client MAC</th><th>Assigned IP</th><th>Hostname</th><th>Gateway</th><th>DNS Servers</th><th>Lease</th><th>Domain</th></tr></thead><tbody class="filterable">`;
+    (R.dhcp_leases||[]).forEach((d,i)=>{
+      h+=`<tr><td>${i}</td><td style="color:var(--accent)">${esc(d.message_type)}</td><td class="mono">${esc(d.client_mac)}</td><td class="mono">${esc(d.assigned_ip||'-')}</td><td>${esc(d.hostname||'-')}</td><td class="mono">${esc(d.gateway||'-')}</td><td class="mono" style="font-size:9px">${(d.dns_servers||[]).join(', ')||'-'}</td><td>${d.lease_secs?d.lease_secs+'s':'-'}</td><td>${esc(d.domain_name||'-')}</td></tr>`});
+    h+=`</tbody></table></div>`;
+  }
+
+  // SMB Sessions
+  if(nSmb){
+    h+=`<div class="panel" id="p-smb"><table><thead><tr><th>#</th><th>Version</th><th>Dialect</th><th>Commands</th><th>Shares Accessed</th><th>NTLM Domains</th><th>NTLM Users</th></tr></thead><tbody class="filterable">`;
+    (R.smb_sessions||[]).forEach((s,i)=>{
+      h+=`<tr><td>${i}</td><td style="color:var(--accent)">${esc(s.version)}</td><td>${esc(s.dialect||'-')}</td><td style="font-size:8px">${(s.commands||[]).join(', ')}</td><td class="mono">${(s.shares_accessed||[]).map(x=>esc(x)).join(', ')||'-'}</td><td>${(s.ntlm_domains||[]).join(', ')||'-'}</td><td style="color:var(--red)">${(s.ntlm_users||[]).join(', ')||'-'}</td></tr>`});
+    h+=`</tbody></table></div>`;
+  }
 
   // CREDENTIALS
   h+=`<div class="panel" id="p-creds"><table><thead><tr><th>#</th><th>Type</th><th>User</th><th>Service</th><th>Host</th><th>Secret</th></tr></thead><tbody class="filterable">`;

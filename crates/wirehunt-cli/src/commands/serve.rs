@@ -172,6 +172,11 @@ fn run_analysis(path: &std::path::Path, filename: &str) -> Result<Report, String
         dns_records: dissection.dns_records,
         http_transactions: dissection.http_transactions,
         tls_sessions: dissection.tls_sessions,
+        ftp_sessions: dissection.ftp_sessions,
+        ssh_sessions: dissection.ssh_sessions,
+        telnet_sessions: dissection.telnet_sessions,
+        dhcp_leases: dissection.dhcp_leases,
+        smb_sessions: dissection.smb_sessions,
         host_profiles: Vec::new(),
         timeline: Vec::new(),
         statistics: AnalysisStatistics {
