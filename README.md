@@ -50,13 +50,17 @@ WireHunt replaces the need to manually use Wireshark, tshark, NetworkMiner, and 
 - Retransmit detection and gap tracking
 - UDP conversation grouping by 5-tuple
 
-**Protocol Dissectors**
+**Protocol Dissectors (10 protocols)**
 - DNS: query/response parsing, name decompression (pointer support), A/AAAA/CNAME/NS/PTR/MX/TXT/SOA record types, response codes
 - HTTP/1.0 and HTTP/1.1: request/response parsing, header extraction, cookie extraction, user-agent, chunked transfer-encoding support
 - TLS: ClientHello/ServerHello parsing, SNI extraction, ALPN, cipher suites, JA3 and JA3S fingerprint computation, GREASE filtering
 - ICMP: type/code parsing with human-readable names, embedded payload collection for covert channel detection
-- FTP: command parsing, USER/PASS credential extraction, RETR/STOR file transfer tracking
+- FTP: command parsing, USER/PASS credential extraction, RETR/STOR file transfer tracking, PASV/EPSV/PORT data channel port extraction, AUTH TLS (FTPS) detection
 - SMTP: session parsing, MAIL FROM/RCPT TO extraction, AUTH LOGIN and AUTH PLAIN credential decoding, email body and subject extraction
+- SSH: banner extraction (client + server), version detection, key exchange algorithm and cipher enumeration
+- Telnet: IAC negotiation option parsing, login prompt credential extraction, session content capture
+- DHCP: Discover/Offer/Request/ACK parsing, hostname, MAC address, assigned IP, gateway, DNS servers, lease time
+- SMB/CIFS: SMB1 and SMB2+ protocol detection, command extraction (negotiate, session setup, tree connect), NTLM domain/user extraction, share access detection
 - Heuristic protocol detection on non-standard ports by inspecting first bytes of stream data
 
 **CTF Flag Detection**
@@ -86,10 +90,20 @@ WireHunt replaces the need to manually use Wireshark, tshark, NetworkMiner, and 
 - SHA256 and MD5 hashing of all extracted artifacts
 - Deduplication by SHA256 hash
 
-**Detection Engine**
+**Detection Engine (18 rule categories)**
 - Generates scored findings with severity (Critical/High/Medium/Low/Info) and confidence (0-100%)
 - MITRE ATT&CK technique tags on all findings
-- Detects: CTF flags, cleartext protocol usage (FTP/Telnet), DNS anomalies (long names, large TXT records), suspicious HTTP user-agents, large file downloads, self-signed TLS certificates, ICMP covert channels
+- Data exfiltration analysis (bytes out per external IP, asymmetric flow detection)
+- C2 beaconing detection (periodic connection analysis with coefficient of variation)
+- Known malware JA3 fingerprints (25+ hashes: CobaltStrike, Metasploit, Sliver, AgentTesla, FormBook, SnakeKeylogger, Emotet, QakBot, IcedID, Dridex, RedLine, Raccoon, AsyncRAT, NjRAT, DarkComet)
+- Malware HTTP patterns: C2 URI patterns, known malware user-agents, POST to raw IP detection
+- FTPS exfiltration detection (port 990, FTP-related SNI in TLS handshakes, AUTH TLS commands)
+- TLS anomalies: no-SNI, self-signed certificates, deprecated TLS versions (1.0/SSL)
+- DNS anomalies: NXDOMAIN counts (DGA indicator), high query volume, fast-flux detection, long domain names
+- Cleartext protocol warnings with malware context (FTP, Telnet, SMTP)
+- Lateral movement detection (internal connections to SMB/RDP/SSH/WinRM)
+- Port scanning detection (>15 unique destination ports from one source)
+- Short-lived encrypted connection patterns (C2 heartbeats)
 - Findings sorted by severity then confidence
 
 **IOC Extraction + Threat Intelligence Enrichment**
@@ -629,21 +643,21 @@ The `report.json` file is the primary output. It contains:
 - Phase 11: Threat intelligence enrichment (VirusTotal, AbuseIPDB, Shodan, AlienVault OTX, GeoIP, WHOIS)
 - Web GUI: Professional dashboard with executive summary, MITRE kill chain, interactive network graph, threat intel enrichment, GeoIP flags, IOC reputation, host profiles, timeline, stream viewer with Follow/Copy/Hex, PDF export, 11 tabbed data sections
 - One-command install scripts for Windows and Linux/macOS
-- 37 unit tests passing across the entire workspace
+- 46 unit tests passing across the entire workspace
 
 ### Remaining (Future)
 
 - ICS/SCADA protocol support (Modbus, DNP3, S7comm, EtherNet/IP, OPC UA)
 - YARA-X rule scanning for IOC detection
 - Suricata rule compatibility
-- More protocol dissectors (SSH banner, Telnet session, SMB/NTLM, WebSocket, MQTT, DHCP)
+- Additional protocol dissectors (WebSocket, MQTT)
 
 ---
 
 ## Development
 
 ```bash
-# Run all tests (37 tests across 5 crates)
+# Run all tests (46 tests across 5 crates)
 cargo test
 
 # Run with debug logging

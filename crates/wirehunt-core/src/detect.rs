@@ -20,12 +20,49 @@ const SUSPICIOUS_PORTS: &[u16] = &[
 ];
 
 const KNOWN_BAD_JA3: &[(&str, &str)] = &[
+    // CobaltStrike
     ("51c64c77e60f3980eea90869b68c58a8", "CobaltStrike"),
     ("72a589da586844d7f0818ce684948eea", "CobaltStrike"),
     ("a0e9f5d64349fb13191bc781f81f42e1", "CobaltStrike"),
+    ("b742b407517bac9536a77a7b0fee28e9", "CobaltStrike"),
+    ("ae4edc6faf64d08308082ad26be60767", "CobaltStrike"),
+    ("649d6810e8392f63dc311eecb6b7098b", "CobaltStrike"),
+    // Metasploit / Meterpreter
     ("e35df3e28c5ce5e11c2b726fad6d31ac", "Metasploit"),
+    ("5d65ea3fb1d4aa7d826733f2f4c474bf", "Metasploit"),
+    // Sliver C2
+    ("c12f54a3f91dc7bafd92cb59fe009a35", "Sliver"),
+    // Banking trojans
     ("3b5074b1b5d032e5620f69f9f700ff0e", "TrickBot"),
     ("6734f37431670b3ab4292b8f60f29984", "Dridex"),
+    ("e7d705a3286e19ea42f587b344ee6865", "Emotet"),
+    ("4d7a28d6f2263ed61de88ca66eb01189", "Emotet"),
+    ("c2b93e3c03adfaf2f6c5ad1a44bdc5f8", "QakBot"),
+    ("37f463bf4616ecd445d4a1937da06e19", "IcedID"),
+    // Infostealers
+    ("8916410db85077a5460817142dcbc8de", "AgentTesla"),
+    ("a56c02640a77b3e4a0a7ec78a2ac7324", "FormBook"),
+    ("cd08e31494816f6d8f9960b22c77c80a", "SnakeKeylogger"),
+    ("4cbaed7d3be18d505ed14098bdfe2439", "RedLine"),
+    ("b2910e5b0a311293e7e941c6ea80e46a", "Raccoon"),
+    // RATs
+    ("c64eb5dd1a0e9dc88bab84a2ffe2feb8", "AsyncRAT"),
+    ("09e1e1e0f37ed38e3a5f8d6a5d458e3d", "NjRAT"),
+    ("2d1eb5817ece335c05db1cfb403d2c2e", "DarkComet"),
+];
+
+const C2_URI_PATTERNS: &[&str] = &[
+    "/submit.php", "/gate.php", "/panel/", "/login.php", "/index.php?id=",
+    "/connect.php", "/command.php", "/beacon/", "/api/v1/report",
+    "/wp-content/uploads/", "/wp-includes/js/", "/.env",
+    "/config.php", "/upload.php", "/data.php", "/task.php",
+];
+
+const MALWARE_USER_AGENTS: &[(&str, &str)] = &[
+    ("JEGJWE", "AgentTesla/FormBook marker"),
+    ("Mozilla/4.0 (compatible; MSIE 6.0;", "Legacy IE6 (common in malware)"),
+    ("AutoIt", "AutoIt script-based malware"),
+    ("CholObj", "Choloader/Emotet marker"),
 ];
 
 /// Run all detection rules and produce scored findings.
@@ -47,6 +84,11 @@ pub fn run_detection(
     detect_icmp_anomalies(&mut findings, report);
     detect_lateral_movement(&mut findings, report);
     detect_recon_activity(&mut findings, report);
+    detect_malware_http_patterns(&mut findings, report);
+    detect_ftps_exfiltration(&mut findings, report);
+    detect_tls_version_anomalies(&mut findings, report);
+    detect_dns_fast_flux(&mut findings, report);
+    detect_short_lived_encrypted(&mut findings, report);
     generate_traffic_summary(&mut findings, report);
 
     findings.sort_by(|a, b| {
@@ -687,6 +729,188 @@ fn generate_traffic_summary(findings: &mut Vec<Finding>, report: &Report) {
             FindingCategory::Anomaly,
         ),
     );
+}
+
+fn detect_malware_http_patterns(findings: &mut Vec<Finding>, report: &Report) {
+    for tx in &report.http_transactions {
+        for pattern in C2_URI_PATTERNS {
+            if tx.uri.contains(pattern) {
+                findings.push(
+                    Finding::new(
+                        format!("Suspicious C2 URI pattern: {}", pattern),
+                        format!("{} {}{} matches known C2/malware URI pattern '{}'.",
+                            tx.method, tx.host.as_deref().unwrap_or("-"), tx.uri, pattern),
+                        Severity::Medium,
+                        0.65,
+                        FindingCategory::C2Communication,
+                    )
+                    .with_mitre("T1071.001"),
+                );
+                break;
+            }
+        }
+
+        if let Some(ref ua) = tx.user_agent {
+            for (pattern, description) in MALWARE_USER_AGENTS {
+                if ua.contains(pattern) {
+                    findings.push(
+                        Finding::new(
+                            format!("Known malware user-agent: {}", description),
+                            format!("User-Agent '{}' matches known malware pattern. {} {} {}",
+                                ua, tx.method, tx.host.as_deref().unwrap_or("-"), tx.uri),
+                            Severity::High,
+                            0.85,
+                            FindingCategory::C2Communication,
+                        )
+                        .with_mitre("T1071.001"),
+                    );
+                    break;
+                }
+            }
+
+            if ua.is_empty() || (!ua.contains(' ') && ua.len() < 20 && !ua.contains('/')) {
+                findings.push(
+                    Finding::new(
+                        format!("Unusual HTTP User-Agent: '{}'", if ua.is_empty() { "(empty)" } else { ua }),
+                        format!("Single-word or empty User-Agent is uncommon in legitimate browsers. {} {} {}",
+                            tx.method, tx.host.as_deref().unwrap_or("-"), tx.uri),
+                        Severity::Low,
+                        0.5,
+                        FindingCategory::Anomaly,
+                    )
+                    .with_mitre("T1071.001"),
+                );
+            }
+        }
+
+        if tx.method == "POST" && tx.host.is_none() {
+            findings.push(
+                Finding::new(
+                    format!("HTTP POST to IP address (no Host): {}", tx.uri),
+                    format!("POST request without Host header to {}. Malware commonly POSTs to raw IP addresses for C2 check-ins.",
+                        tx.uri),
+                    Severity::Medium,
+                    0.7,
+                    FindingCategory::C2Communication,
+                )
+                .with_mitre("T1071.001"),
+            );
+        }
+    }
+}
+
+fn detect_ftps_exfiltration(findings: &mut Vec<Finding>, report: &Report) {
+    for flow in &report.flows {
+        if flow.key.dst_port == 990 || flow.key.src_port == 990 {
+            findings.push(
+                Finding::new(
+                    format!("FTPS (implicit TLS) connection: {}:{} -> {}:{}",
+                        flow.key.src_ip, flow.key.src_port, flow.key.dst_ip, flow.key.dst_port),
+                    format!("Port 990 is used for implicit FTPS. Malware families like AgentTesla, FormBook, and SnakeKeylogger commonly exfiltrate stolen credentials via FTPS. {} packets, {}.",
+                        flow.packet_count, fmt_bytes(flow.byte_count)),
+                    Severity::High,
+                    0.85,
+                    FindingCategory::Exfiltration,
+                )
+                .with_mitre("T1048.003")
+                .with_mitre("T1071.002"),
+            );
+        }
+    }
+
+    for tls in &report.tls_sessions {
+        if let Some(ref sni) = tls.sni {
+            let sni_lower = sni.to_lowercase();
+            if sni_lower.contains("ftp.") || sni_lower.starts_with("ftp") {
+                findings.push(
+                    Finding::new(
+                        format!("TLS connection with FTP-related SNI: {}", sni),
+                        format!("TLS handshake to '{}' suggests FTPS connection. Version: {}, Cipher: {}. FTPS is a common exfiltration channel for infostealers.",
+                            sni, tls.version, tls.cipher_suite.as_deref().unwrap_or("-")),
+                        Severity::High,
+                        0.8,
+                        FindingCategory::Exfiltration,
+                    )
+                    .with_mitre("T1048.003"),
+                );
+            }
+        }
+    }
+}
+
+fn detect_tls_version_anomalies(findings: &mut Vec<Finding>, report: &Report) {
+    for tls in &report.tls_sessions {
+        if tls.version.contains("1.0") || tls.version.contains("SSL") {
+            findings.push(
+                Finding::new(
+                    format!("Deprecated TLS version: {} (SNI: {})", tls.version, tls.sni.as_deref().unwrap_or("-")),
+                    format!("TLS {} is deprecated and insecure. Modern software uses TLS 1.2+. Legacy TLS versions in current traffic may indicate old malware, vulnerable software, or downgrade attacks.",
+                        tls.version),
+                    Severity::Medium,
+                    0.6,
+                    FindingCategory::CertificateIssue,
+                )
+                .with_mitre("T1573.002"),
+            );
+        }
+    }
+}
+
+fn detect_dns_fast_flux(findings: &mut Vec<Finding>, report: &Report) {
+    let mut domain_ips: HashMap<String, HashSet<String>> = HashMap::new();
+    for rec in &report.dns_records {
+        if rec.is_response && (rec.record_type == "A" || rec.record_type == "AAAA") {
+            let root = extract_root_domain(&rec.query_name);
+            for ip in &rec.response_data {
+                domain_ips.entry(root.clone()).or_default().insert(ip.clone());
+            }
+        }
+    }
+
+    for (domain, ips) in &domain_ips {
+        if ips.len() >= 5 {
+            findings.push(
+                Finding::new(
+                    format!("Possible fast-flux DNS: {} ({} unique IPs)", domain, ips.len()),
+                    format!("Domain {} resolved to {} unique IP addresses: {}. Fast-flux DNS is used by botnets and malware to make C2 infrastructure resilient to takedown.",
+                        domain, ips.len(),
+                        ips.iter().take(5).cloned().collect::<Vec<_>>().join(", ")),
+                    Severity::Medium,
+                    0.7,
+                    FindingCategory::SuspiciousDns,
+                )
+                .with_mitre("T1568.001"),
+            );
+        }
+    }
+}
+
+fn detect_short_lived_encrypted(findings: &mut Vec<Finding>, report: &Report) {
+    let mut short_tls_count = 0u32;
+    for flow in &report.flows {
+        if matches!(flow.detected_protocol, Some(AppProtocol::Tls | AppProtocol::Https))
+            && flow.duration_us < 2_000_000 // < 2 seconds
+            && flow.byte_count < 5000
+            && is_external(flow.key.dst_ip)
+        {
+            short_tls_count += 1;
+        }
+    }
+
+    if short_tls_count >= 3 {
+        findings.push(
+            Finding::new(
+                format!("{} short-lived encrypted connections to external hosts", short_tls_count),
+                format!("{} TLS connections lasted <2s with <5KB data each. Short encrypted bursts to external hosts may indicate C2 heartbeats, beacon check-ins, or failed C2 connections.",
+                    short_tls_count),
+                Severity::Medium,
+                0.65,
+                FindingCategory::C2Communication,
+            )
+            .with_mitre("T1573")
+            .with_mitre("T1071"),
+        );
+    }
 }
 
 fn extract_root_domain(name: &str) -> String {
