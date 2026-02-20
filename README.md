@@ -92,7 +92,7 @@ WireHunt replaces the need to manually use Wireshark, tshark, NetworkMiner, and 
 - Detects: CTF flags, cleartext protocol usage (FTP/Telnet), DNS anomalies (long names, large TXT records), suspicious HTTP user-agents, large file downloads, self-signed TLS certificates, ICMP covert channels
 - Findings sorted by severity then confidence
 
-**IOC Extraction**
+**IOC Extraction + Threat Intelligence Enrichment**
 - Automatic extraction of Indicators of Compromise from all analysis data
 - External IP addresses with flow counts
 - Domain names with DGA (Domain Generation Algorithm) detection
@@ -102,6 +102,20 @@ WireHunt replaces the need to manually use Wireshark, tshark, NetworkMiner, and 
 - User-Agent strings with tool/scanner identification (curl, wget, nikto, sqlmap, nmap)
 - MITRE ATT&CK technique tagging on all IOCs
 - Confidence scoring per IOC
+- Async threat intelligence enrichment via 4 APIs:
+  - VirusTotal: IP/domain/hash reputation and detection ratios
+  - AbuseIPDB: IP abuse confidence scoring
+  - Shodan: open ports, services, vulnerabilities
+  - AlienVault OTX: pulse counts, community threat intel
+- GeoIP lookup (ip-api.com, free, no key needed): country, city, ASN, org
+- WHOIS lookup (RDAP, free, no key needed): registration info
+
+**Auto Executive Summary**
+- Rule-based narrative generated from report data (no AI required)
+- Plain English description of what happened in the capture
+- Highlights exfiltration indicators, C2 patterns, credential exposure
+- Covers both CTF and incident response scenarios
+- MITRE ATT&CK technique coverage summary
 
 **Host Profiling**
 - Automatic per-host profile generation from flow data
@@ -147,7 +161,7 @@ WireHunt replaces the need to manually use Wireshark, tshark, NetworkMiner, and 
 - Configuration via `~/.wirehunt/config.toml` or environment variables
 
 **Three Professional Interfaces**
-- Web GUI: drag-and-drop browser dashboard at localhost:8888 with MITRE ATT&CK kill chain visualization, IOC panel, host profiles, timeline view, TLS session details, finding drill-down with evidence, top talkers chart, and 10 tabbed data sections
+- Web GUI: drag-and-drop browser dashboard at localhost:8888 with executive summary, MITRE ATT&CK kill chain, interactive network graph, threat intel enrichment (VT/AbuseIPDB/Shodan/OTX), GeoIP country flags, IOC reputation scoring, host profiles, timeline, TLS details, finding drill-down with evidence, stream viewer with Follow/Copy/Hex, top talkers, 11 tabbed data sections, PDF export
 - Terminal TUI: interactive ratatui-based interface with 7 tabs and Vim keybindings
 - CLI: scriptable command-line interface with JSON output for automation and pipeline integration
 
@@ -155,15 +169,41 @@ WireHunt replaces the need to manually use Wireshark, tshark, NetworkMiner, and 
 
 ## Installation
 
+### Quick Install (Recommended)
+
+Linux/macOS:
+```bash
+git clone https://github.com/cheongcode/WireGar.git && cd WireGar && bash install.sh
+```
+
+Windows PowerShell:
+```powershell
+git clone https://github.com/cheongcode/WireGar.git; cd WireGar; .\install.ps1
+```
+
+That's it. The install script handles everything: installs Rust if needed, builds optimized release binaries, and installs them to your PATH. Then just run `wirehunt serve` and drop your pcap.
+
 ### Prerequisites
 
-- [Rust toolchain](https://rustup.rs/) version 1.80 or later
+- [Rust toolchain](https://rustup.rs/) version 1.80 or later (install script handles this automatically)
 - Git
 
-### Build from Source
+### Optional: Threat Intelligence API Keys
+
+For IOC enrichment with VirusTotal, AbuseIPDB, and Shodan (all free tiers):
 
 ```bash
-git clone https://github.com/brand/WireGar.git
+export VIRUSTOTAL_API_KEY="your-key-here"    # https://virustotal.com (free: 4 req/min)
+export ABUSEIPDB_API_KEY="your-key-here"     # https://abuseipdb.com (free: 1000 req/day)
+export SHODAN_API_KEY="your-key-here"         # https://shodan.io (free tier)
+```
+
+GeoIP and WHOIS lookups work automatically with no API keys needed.
+
+### Build from Source (Manual)
+
+```bash
+git clone https://github.com/cheongcode/WireGar.git
 cd WireGar
 cargo build --release
 ```
@@ -177,7 +217,7 @@ cargo install --path crates/wirehunt-cli
 cargo install --path crates/wirehunt-tui
 ```
 
-### Quick Install Scripts
+### Install Scripts (Alternative)
 
 Linux/macOS:
 ```bash
@@ -580,13 +620,15 @@ The `report.json` file is the primary output. It contains:
 - Phase 5b: IOC extraction (IPs, domains, URLs, file hashes, JA3/JA3S, user-agents, DGA detection)
 - Phase 5c: Host profiling (per-host traffic analysis, service discovery, hostname resolution)
 - Phase 5d: Timeline generation (chronological events from flows, findings, HTTP, credentials)
+- Phase 5e: Auto executive summary (rule-based narrative, no AI required)
 - Phase 6: SQLite FTS5 search index and query DSL (`wirehunt query` command)
 - Phase 7: Interactive ratatui TUI with 7 tabs and Vim keybindings
 - Phase 8: Standalone HTML report export, JSON export, STIX 2.1 bundle export
 - Phase 9: Live network capture mode with real-time alerts (feature-gated, requires libpcap/Npcap)
 - Phase 10: AI-powered analysis (OpenAI, Anthropic, Ollama) with explain, solve, decode, rule generation, query suggestions
-- Web GUI: Professional drag-and-drop dashboard with MITRE ATT&CK kill chain, IOC panel, host profiles, timeline, TLS details, finding drill-down, top talkers, 10 tabbed data sections
-- Install scripts for Windows and Linux/macOS
+- Phase 11: Threat intelligence enrichment (VirusTotal, AbuseIPDB, Shodan, AlienVault OTX, GeoIP, WHOIS)
+- Web GUI: Professional dashboard with executive summary, MITRE kill chain, interactive network graph, threat intel enrichment, GeoIP flags, IOC reputation, host profiles, timeline, stream viewer with Follow/Copy/Hex, PDF export, 11 tabbed data sections
+- One-command install scripts for Windows and Linux/macOS
 - 37 unit tests passing across the entire workspace
 
 ### Remaining (Future)

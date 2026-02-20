@@ -391,6 +391,7 @@ pub fn run(args: AnalyzeArgs) -> Result<()> {
                 .unwrap_or(0.0),
             profile: args.profile,
         },
+        executive_summary: None,
         findings: Vec::new(),
         flows,
         streams,
@@ -439,10 +440,11 @@ pub fn run(args: AnalyzeArgs) -> Result<()> {
     report.statistics.total_findings = findings.len() as u64;
     report.findings = findings;
 
-    // 7b. IOC extraction, timeline, host profiling
+    // 7b. IOC extraction, timeline, host profiling, executive summary
     report.iocs = wirehunt_core::iocextract::extract_iocs(&report);
     report.timeline = wirehunt_core::timeline::TimelineBuilder::new().build(&report);
     report.host_profiles = wirehunt_core::hostprofile::HostProfiler::new().build(&report);
+    report.executive_summary = Some(wirehunt_core::narrative::generate_executive_summary(&report));
 
     if !report.iocs.is_empty() {
         println!(

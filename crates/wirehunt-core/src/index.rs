@@ -427,6 +427,7 @@ mod tests {
                 capture_duration_secs: 0.0,
                 profile: AnalysisProfile::Ctf,
             },
+            executive_summary: None,
             findings: vec![],
             flows: vec![],
             streams: vec![],

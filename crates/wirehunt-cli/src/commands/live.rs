@@ -279,6 +279,7 @@ pub fn run(args: LiveArgs) -> Result<()> {
             capture_duration_secs: started.elapsed().as_secs_f64(),
             profile,
         },
+        executive_summary: None,
         findings: Vec::new(),
         flows,
         streams,
@@ -304,6 +305,7 @@ pub fn run(args: LiveArgs) -> Result<()> {
     let findings = wirehunt_core::detect::run_detection(&report, &saved_flags);
     report.statistics.total_findings = findings.len() as u64;
     report.findings = findings;
+    report.executive_summary = Some(wirehunt_core::narrative::generate_executive_summary(&report));
 
     let report_path = out_dir.join("report.json");
     let report_json = serde_json::to_string_pretty(&report)?;

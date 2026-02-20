@@ -46,6 +46,10 @@ chrono = { version = "0.4", features = ["serde"] }
 # Unique IDs
 uuid = { version = "1", features = ["v4", "serde"] }
 
+# HTTP client (for threat intel enrichment)
+reqwest = { version = "0.12", features = ["json", "rustls-tls"], default-features = false }
+tokio.workspace = true
+
 # Rules crate
 wirehunt-rules = { path = "../wirehunt-rules" }
 

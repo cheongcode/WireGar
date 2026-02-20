@@ -12,5 +12,7 @@ pub mod entropy;
 pub mod timeline;
 pub mod hostprofile;
 pub mod iocextract;
+pub mod threatintel;
+pub mod narrative;
 
 pub const VERSION: &str = env!("CARGO_PKG_VERSION");

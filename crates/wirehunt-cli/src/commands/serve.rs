@@ -39,7 +39,8 @@ pub fn run(args: ServeArgs) -> Result<()> {
             .route("/", get(index_handler))
             .route("/api/analyze", post(analyze_handler))
             .route("/api/report", get(report_handler))
-            .layer(DefaultBodyLimit::max(500 * 1024 * 1024)) // 500MB max upload
+            .route("/api/enrich", post(enrich_handler))
+            .layer(DefaultBodyLimit::max(500 * 1024 * 1024))
             .with_state(state);
 
         let addr = format!("127.0.0.1:{}", args.port);
@@ -161,6 +162,7 @@ fn run_analysis(path: &std::path::Path, filename: &str) -> Result<Report, String
                 .unwrap_or(0.0),
             profile: AnalysisProfile::Ctf,
         },
+        executive_summary: None,
         findings: Vec::new(),
         flows,
         streams,
@@ -190,6 +192,7 @@ fn run_analysis(path: &std::path::Path, filename: &str) -> Result<Report, String
     report.iocs = wirehunt_core::iocextract::extract_iocs(&report);
     report.timeline = wirehunt_core::timeline::TimelineBuilder::new().build(&report);
     report.host_profiles = wirehunt_core::hostprofile::HostProfiler::new().build(&report);
+    report.executive_summary = Some(wirehunt_core::narrative::generate_executive_summary(&report));
 
     let mut talkers: std::collections::HashMap<std::net::IpAddr, u64> = std::collections::HashMap::new();
     for flow in &report.flows {
@@ -212,4 +215,23 @@ fn run_analysis(path: &std::path::Path, filename: &str) -> Result<Report, String
     report.statistics.top_ports = sorted_ports;
 
     Ok(report)
+}
+
+async fn enrich_handler(
+    State(state): State<Arc<AppState>>,
+) -> Result<Json<Vec<IocEnrichment>>, (StatusCode, String)> {
+    let report = state.last_report.lock().await;
+    let report = report
+        .as_ref()
+        .ok_or((StatusCode::NOT_FOUND, "no report available".to_string()))?;
+
+    let client = wirehunt_core::threatintel::ThreatIntelClient::new();
+    let ip_iocs: Vec<Ioc> = report.iocs.iter()
+        .filter(|i| matches!(i.kind, IocKind::IpAddress | IocKind::Domain | IocKind::FileHash))
+        .take(20)
+        .cloned()
+        .collect();
+
+    let enrichments = client.enrich_iocs(&ip_iocs).await;
+    Ok(Json(enrichments))
 }

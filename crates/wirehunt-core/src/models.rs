@@ -415,6 +415,7 @@ pub enum AnalysisProfile {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Report {
     pub metadata: ReportMetadata,
+    pub executive_summary: Option<String>,
     pub findings: Vec<Finding>,
     pub flows: Vec<Flow>,
     pub streams: Vec<Stream>,
@@ -438,6 +439,50 @@ pub struct AnalysisStatistics {
     pub total_artifacts: u64,
     pub total_credentials: u64,
     pub analysis_duration_ms: u64,
+}
+
+// ---------------------------------------------------------------------------
+// IOC Enrichment (threat intelligence)
+// ---------------------------------------------------------------------------
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct IocEnrichment {
+    pub ioc_id: String,
+    pub ioc_value: String,
+    pub reputation_score: Option<i32>,
+    pub is_malicious: Option<bool>,
+    pub tags: Vec<String>,
+    pub geo: Option<GeoInfo>,
+    pub whois: Option<WhoisInfo>,
+    pub sources: Vec<EnrichmentSource>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GeoInfo {
+    pub country: Option<String>,
+    pub country_code: Option<String>,
+    pub city: Option<String>,
+    pub region: Option<String>,
+    pub asn: Option<String>,
+    pub org: Option<String>,
+    pub lat: Option<f64>,
+    pub lon: Option<f64>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct WhoisInfo {
+    pub name: Option<String>,
+    pub org: Option<String>,
+    pub country: Option<String>,
+    pub range: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct EnrichmentSource {
+    pub provider: String,
+    pub score: Option<i32>,
+    pub details: String,
+    pub link: Option<String>,
 }
 
 // ---------------------------------------------------------------------------
