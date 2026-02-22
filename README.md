@@ -8,7 +8,7 @@
 
 WireHunt replaces the need to manually use Wireshark, tshark, NetworkMiner, and other tools. Drop any pcap or pcapng file in -- malware traffic, CTF challenges, network forensic cases, red team captures -- and WireHunt does the rest. It reassembles TCP streams, parses protocols, extracts files, finds flags, harvests credentials, detects IOCs, maps MITRE ATT&CK techniques, profiles hosts, and scores findings with confidence levels.
 
-> **Origin Story:** WireHunt started life as **WireGar**, a university final year project built 6 years ago. It has since been completely rewritten from the ground up in Rust -- zero legacy code remains. The original Python prototype could barely handle small pcaps; WireHunt now processes hundreds of megabytes in seconds with full protocol dissection, credential harvesting, IOC extraction, AI-powered analysis, and three professional interfaces (Web GUI, TUI, CLI).
+> **Origin Story:** WireHunt started life as **WireGar**, a Nanyang Polytechnic final year project built 6 years ago. It has since been completely rewritten from the ground up in Rust -- zero legacy code remains. The original Python prototype could barely handle small pcaps; WireHunt now processes hundreds of megabytes in seconds with full protocol dissection, credential harvesting, IOC extraction, AI-powered analysis, and three professional interfaces (Web GUI, TUI, CLI).
 
 ```
  ██╗    ██╗██╗██████╗ ███████╗██╗  ██╗██╗   ██╗███╗   ██╗████████╗
